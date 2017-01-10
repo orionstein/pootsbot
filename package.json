@@ -1,4 +1,7 @@
 {
+  "scripts": {
+    "start": "node bot.js"
+  },
   "dependencies": {
     "async": "^2.1.4",
     "cheerio": "^0.22.0",

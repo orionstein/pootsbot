@@ -63,6 +63,8 @@ function reduceEntries(entries) {
     } else {
       return str + entry.id + ', '
     }
+    // return (entry.id === _.last(entries).id) ? (str + entry.id) : (str + entry.id + ', ')
+    // bahaa i'm not that mean
   }, '')
 }
 

@@ -1,9 +1,10 @@
+let _ = require('lodash')
 let getLatestUpdate = require('./plugins/latestUpdate')
 let pootsQuote = require('./plugins/pootsQuote')
 let glossaryPlugin = require('./plugins/glossary')
 let prefix = process.env.POOTSBOT_PREFIX || '!'
 
-function listen(from, to, text, message) {
+function listen(bot, config, from, to, text, message) {
   console.log(from)
   console.log(to)
   console.log(text)
@@ -22,4 +23,4 @@ function listen(from, to, text, message) {
   }
 }
 
-module.exports = listen
+module.exports = _.curry(listen)

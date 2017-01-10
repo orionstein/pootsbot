@@ -5,7 +5,7 @@ let _ = require('lodash')
 let async = require('async')
 
 let config = {
-  channels: ["#kingdomdeath"],
+  channels: ["#pootsbottest"],
   server: "irc.freenode.net",
   botName: "pootsbot",
   password: process.env.POOTSBOT_PASSWORD
@@ -19,12 +19,23 @@ bot.addListener('registered', function() {
   bot.say('nickserv', 'identify ' + config.password);
 })
 
+bot.addListener('error', function(message) {
+    console.log('error: ', message);
+});
+
 bot.addListener("join", function(channel, who) {
   let voiceComm = channel + ' ' + who;
+  console.log(channel)
+  console.log(bot)
   if (who !== 'pootsbot')
   {
-    bot.send('MODE', channel, '+v', who);
+    try{
+      bot.send('MODE', channel, '+v', who);
+    }
+    catch(e){
+      console.log(e)
+    }
   }
 });
 
-bot.addListener("message", require('./listen'));
+bot.addListener("message", require('./listen')(bot, config));

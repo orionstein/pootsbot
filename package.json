@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "async": "^2.1.4",
+    "cheerio": "^0.22.0",
+    "irc": "^0.5.2",
+    "lodash": "^4.17.4",
+    "request": "^2.79.0"
+  }
+}

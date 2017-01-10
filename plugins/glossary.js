@@ -41,7 +41,7 @@ function getGlossary(bot, config, command) {
     let entry
     if (isnum) {
       entry = _.find(body.glossary, function(a) {
-        return a.id === search
+        return ~~a.id === ~~search
       })
     } else {
       entry = _.find(body.glossary, function(a) {

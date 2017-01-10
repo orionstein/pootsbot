@@ -5,7 +5,7 @@ let _ = require('lodash')
 let async = require('async')
 
 let config = {
-  channels: ["#kingdomdeath"],
+  channels: ["#pootsbottest"],
   server: "irc.freenode.net",
   botName: "pootsbot",
   password: process.env.POOTSBOT_PASSWORD
@@ -25,8 +25,6 @@ bot.addListener('error', function(message) {
 
 bot.addListener("join", function(channel, who) {
   let voiceComm = channel + ' ' + who;
-  console.log(channel)
-  console.log(bot)
   if (who !== 'pootsbot')
   {
     try{

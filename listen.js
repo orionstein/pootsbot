@@ -5,10 +5,6 @@ let glossaryPlugin = require('./plugins/glossary')
 let prefix = process.env.POOTSBOT_PREFIX || '!'
 
 function listen(bot, config, from, to, text, message) {
-  console.log(from)
-  console.log(to)
-  console.log(text)
-  console.log(message)
   if (_.startsWith(text, prefix + 'latestUpdate')) {
     getLatestUpdate(bot, config)
   }

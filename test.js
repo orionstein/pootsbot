@@ -19,7 +19,6 @@ command = '!glossary gear'
 let search = command.substr(command.indexOf(' ')+1)
 
 let isnum = /^\d+$/.test(search);
-console.log(isnum)
 
 request({
   url: 'http://www.kingdomdeath.com/tools/json/gloss-main.json',
@@ -35,6 +34,5 @@ request({
     {
       entry = _.filter(body.glossary, function(a){ return _.includes(_.lowerCase(a.entry_content), _.lowerCase(search)) })
     }
-    console.log(res.headers['last-modified'])
   }
 })

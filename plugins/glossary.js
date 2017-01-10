@@ -9,7 +9,7 @@ let latestUpdated
 function pullGlossary(cb) {
   if (!glossary) {
     request({
-      url: 'http://www.kingdomdeath.com/tools/json/gloss-main.json',
+      url: 'https://www.kingdomdeath.com/tools/json/gloss-main.json',
       json: true
     }, function(error, res, body) {
       if (!error) {
@@ -20,7 +20,7 @@ function pullGlossary(cb) {
     });
   } else {
     request({
-      url: 'http://www.kingdomdeath.com/tools/json/gloss-main.json',
+      url: 'https://www.kingdomdeath.com/tools/json/gloss-main.json',
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdated === res.headers['last-modified']) {

@@ -40,7 +40,9 @@ function getGlossary(bot, config, command) {
   pullGlossary(function(body) {
     let entry
     if (isnum) {
-      entry = body.glossary[search]
+      entry = _.find(body.glossary, function(a) {
+        return a.id === search
+      })
     } else {
       entry = _.find(body.glossary, function(a) {
         return _.lowerCase(a.entry_title) === _.lowerCase(search)

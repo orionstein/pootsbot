@@ -3,6 +3,15 @@ let cheerio = require('cheerio')
 let _ = require('lodash')
 let async = require('async')
 
+const titlesBlacklistRegexes = [
+  /Robot Check/,
+  /Instagram/,
+  /Imgur: The most awesome images on the Internet/,
+  /\/TheP\(aste\)\?B\\\.in\/i - For all your pasting needs!/,
+  /Update Your Browser \| Facebook/,
+  /Snippet /| IRCCloud/
+]
+
 function findUrls( text )
 {
     var source = (text || '').toString();
@@ -26,10 +35,14 @@ function findUrls( text )
 function linkQuery(bot, config, command) {
   let requestFunc = _.curry(function(page, callback) {
     request(page, function(error, res, body) {
-      if (!error) {
+      if (!error && res.statusCode === 200) {
         let $ = cheerio.load(body);
-        let title = $("title").text();
-        bot.say(config.channels[0], title);
+        let title = $("title").text().trim();
+        if (!_.some(titlesBlacklistRegexes, function(regex) {
+          return regex.test(title);
+        })) {
+          bot.say(config.channels[0], title);
+        }
         callback()
       }
     })

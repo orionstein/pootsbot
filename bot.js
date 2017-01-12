@@ -5,7 +5,7 @@ let _ = require('lodash')
 let async = require('async')
 
 let config = {
-  channels: ["#kingdomdeath"],
+  channels: [process.env.POOTSBOT_CHANNEL],
   server: "irc.freenode.net",
   botName: "pootsbot",
   password: process.env.POOTSBOT_PASSWORD

@@ -23,6 +23,9 @@ function listen(bot, config, from, to, text, message) {
   if (_.startsWith(text.toLowerCase(), prefix + 'wolfram')) {
     wolfram(bot, config, text)
   }
+  if (_.startsWith(text.toLowerCase(), prefix + 'version')) {
+    bot.say(config.channels[0], 'PootsBot version: ' + process.env.POOTSBOT_VERSION);
+  }
   if (_.startsWith(text.toLowerCase(), prefix + 'commands')) {
     bot.say(config.channels[0], 'Current Commands - ');
     bot.say(config.channels[0], '!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram');

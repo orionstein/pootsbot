@@ -12,44 +12,49 @@ const titlesBlacklistRegexes = [
   /Snippet \| IRCCloud/
 ]
 
-function findUrls( text )
-{
-    var source = (text || '').toString();
-    var urlArray = [];
-    var url;
-    var matchArray;
+function findUrls(text) {
+  var source = (text || '').toString();
+  var urlArray = [];
+  var url;
+  var matchArray;
 
-    var regexToken = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)|((mailto:)?[_.\w-]+@([\w][\w\-]+\.)+[a-zA-Z]{2,3})/g;
+  var regexToken = /(((ftp|https?):\/\/)[\-\w@:%_\+.~#?,&\/\/=]+)|((mailto:)?[_.\w-]+@([\w][\w\-]+\.)+[a-zA-Z]{2,3})/g;
 
-    while( (matchArray = regexToken.exec( source )) !== null )
-    {
-        var token = matchArray[0];
-        urlArray.push( token );
-    }
+  while ((matchArray = regexToken.exec(source)) !== null) {
+    var token = matchArray[0];
+    urlArray.push(token);
+  }
 
-    return urlArray;
+  return urlArray;
 }
 
 
 
 function linkQuery(bot, config, command) {
   let requestFunc = _.curry(function(page, callback) {
-    request(page, function(error, res, body) {
-      if (!error && res.statusCode === 200) {
-        let $ = cheerio.load(body);
-        let title = $("title").text().trim();
-        if (!_.some(titlesBlacklistRegexes, function(regex) {
-          return regex.test(title);
-        })) {
-          bot.say(config.channels[0], title);
-        }
-        callback()
+    request({
+      url: page,
+      method: 'HEAD'
+    }, function(error, res, body) {
+      if (_.includes(res.headers['content-type'], 'text/html')) {
+        request(page, function(error, res, body) {
+          if (!error && res.statusCode === 200) {
+            let $ = cheerio.load(body);
+            let title = $("title").text().trim();
+            if (!_.some(titlesBlacklistRegexes, function(regex) {
+                return regex.test(title);
+              })) {
+              bot.say(config.channels[0], title);
+            }
+            callback()
+          }
+        })
       }
     })
   })
   let links = findUrls(command)
   let calls = []
-  _.forEach(links, function(link){
+  _.forEach(links, function(link) {
     calls.push(requestFunc(link))
   })
   async.parallel(calls, function(err, results) {

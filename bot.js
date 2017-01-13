@@ -32,7 +32,7 @@ bot.addListener("join", function(channel, who) {
   {
     try{
       bot.send('MODE', channel, '+v', who);
-      if (_.includes(opList, who))
+      if (_.includes(opList, _.lowerCase(who)))
       {
         bot.send('MODE', channel, '+o', who);
       }

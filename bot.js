@@ -15,6 +15,9 @@ let bot = new irc.Client(config.server, config.botName, {
   channels: config.channels
 });
 
+let opList = process.env.POOTSBOT_OPERATORS.split(',')
+
+
 bot.addListener('registered', function() {
   bot.say('nickserv', 'identify ' + config.password);
 })
@@ -29,6 +32,10 @@ bot.addListener("join", function(channel, who) {
   {
     try{
       bot.send('MODE', channel, '+v', who);
+      if (_.includes(opList, who))
+      {
+        bot.send('MODE', channel, '+o', who);
+      }
     }
     catch(e){
       console.log(e)

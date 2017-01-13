@@ -23,16 +23,20 @@ function listen(bot, config, from, to, text, message) {
   if (_.startsWith(text.toLowerCase(), prefix + 'wolfram')) {
     wolfram(bot, config, text)
   }
+  if (_.startsWith(text.toLowerCase(), prefix + 'commands')) {
+    bot.say(config.channels[0], 'Current Commands - ');
+    bot.say(config.channels[0], '!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram');
+  }
   if (_.startsWith(_.lowerCase(text), 'damn you'))
   {
     let target = text.substr(9)
     bot.say(config.channels[0], 'We will come down on ' + target + ' like the hammer of Thor.');
     bot.say(config.channels[0], 'The thunder of my vengeance will echo through their heart like the gust of a thousand winds!');
   }
-  if (_.startWith(text.toLowerCase(), prefix + 'miniinfo')) {
+  if (_.startsWith(text.toLowerCase(), prefix + 'miniinfo')) {
     minisPlugin.getMiniInfo(bot, config, text)
   }
-  if (_.startWith(text.toLowerCase(), prefix + 'searchmini')) {
+  if (_.startsWith(text.toLowerCase(), prefix + 'searchmini')) {
     minisPlugin.searchMinis(bot, config, text)
   }
   linkQuery(bot, config, text)

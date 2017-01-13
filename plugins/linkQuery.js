@@ -9,7 +9,7 @@ const titlesBlacklistRegexes = [
   /Imgur: The most awesome images on the Internet/,
   /\/TheP\(aste\)\?B\\\.in\/i - For all your pasting needs!/,
   /Update Your Browser \| Facebook/,
-  /Snippet /| IRCCloud/
+  /Snippet \| IRCCloud/
 ]
 
 function findUrls( text )

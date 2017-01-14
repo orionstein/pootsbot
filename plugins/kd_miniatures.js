@@ -24,7 +24,6 @@ function pullDataMinis(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdatedMinis === res.headers['last-modified']) {
-        console.log(dataMinis)
         cb(dataMinis)
       } else {
         dataMinis = void 0;
@@ -43,7 +42,6 @@ function getMiniInfo(bot, config, command) {
     bot.say(config.channels[0], "Whachoo tryin' to say, Willis?")
     return false;
   }
-  console.log(parser)
   if (parser.length == 2) {
     // okay, we have command and search item 
     search = parser[1].toLowerCase()

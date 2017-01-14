@@ -5,12 +5,9 @@ function wolfram(bot, config, command) {
   let search = command.substr(command.indexOf(' ') + 1)
   Wolfram.query(search, function(err, result) {
     if (err) {
-      console.log(err);
       bot.say(config.channels[0], 'Wolfram Error');
     } else {
       if (result.queryresult && result.queryresult.pod) {
-        console.log(result)
-        console.log(result.queryresult.pod[0])
         if (result.queryresult.pod.length > 1)
         {
           let pod = result.queryresult.pod[1]

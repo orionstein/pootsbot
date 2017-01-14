@@ -19,6 +19,7 @@ let opList = process.env.POOTSBOT_OPERATORS.split(',')
 
 
 bot.addListener('registered', function() {
+  bot.send('nick', 'pootsbot');
   bot.say('nickserv', 'identify ' + config.password);
 })
 

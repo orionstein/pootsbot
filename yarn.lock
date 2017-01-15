@@ -570,6 +570,10 @@ minimatch@^3.0.2:
   dependencies:
     brace-expansion "^1.0.0"
 
+moment:
+  version "2.17.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.17.1.tgz#fed9506063f36b10f066c8b59a144d7faebe1d82"
+
 nan@^2.3.3, nan@^2.3.5:
   version "2.5.0"
   resolved "https://registry.yarnpkg.com/nan/-/nan-2.5.0.tgz#aa8f1e34531d807e9e27755b234b4a6ec0c152a8"

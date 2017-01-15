@@ -8,6 +8,8 @@ let config = {
   channels: [process.env.POOTSBOT_CHANNEL],
   server: "irc.freenode.net",
   botName: "pootsbot",
+  autoRejoin: true,
+  retryCount: 2,
   password: process.env.POOTSBOT_PASSWORD
 };
 
@@ -25,6 +27,13 @@ bot.addListener('registered', function() {
 
 bot.addListener('error', function(message) {
     console.log('error: ', message);
+});
+
+bot.addListener("quit", function(channel, who) {
+  if (who === 'pootsbot')
+  {
+    bot.send('nick', 'pootsbot');
+  }
 });
 
 bot.addListener("join", function(channel, who) {

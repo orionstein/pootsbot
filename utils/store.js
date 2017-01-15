@@ -44,6 +44,9 @@ const Store = function() {
     _this.name = name
     _this.data = {}
     return {
+      has: (prop) => {
+        return !!_this.data[prop]
+      },
       get: (prop) => {
         if (prop) {
           return _.merge({}, {
@@ -63,6 +66,21 @@ const Store = function() {
           })
         }
       },
+      unset: (prop) => {
+        delete _this.data[prop]
+        _this.data = Object.assign({}, _this.data)
+      },
+      move: (fromProp, toProp) => {
+        if (!!_this.data[toProp] || !_this.data[fromProp]) {
+          console.log('source prop must exist, and destination prop must be empty')
+        } else {
+          let newData = {
+            [toProp]: _this.data[fromProp]
+          }
+          delete _this.data[fromProp]
+          _this.data = Object.assign({}, _this.data, newData)
+        }
+      },
       tempMatch: (toMatch, cb) => {
         let tm = new Tempmatch(toMatch, cb)
         tempMatches.push(tm)
@@ -72,8 +90,7 @@ const Store = function() {
   return {
     createNameSpace: (name) => {
       let ns = new Namespace(name)
-      if (ns)
-      {
+      if (ns) {
         namespaces[name] = ns
       }
       return ns

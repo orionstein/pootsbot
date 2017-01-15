@@ -9,11 +9,21 @@ let listeningTo = store.createNameSpace('listeningTo')
 let watching = store.createNameSpace('watching')
 let playing = store.createNameSpace('playing')
 
+const matchEmpty = (text) => {
+  return (text.trim() === 'nothing') ||
+    (text.trim() === 'to nothing')
+}
+
 module.exports = (match, say) => {
   match(['playing', 'play'], (search) => {
     if (search) {
-      playing.set(say.prototype.from, search)
-      say("You're playing " + search + "!")
+      if (matchEmpty(search)) {
+        playing.unset(say.prototype.from)
+        say('Game cleared!')
+      } else {
+        playing.set(say.prototype.from, search)
+        say("You're playing " + search + "!")
+      }
     } else {
       let playingData = playing.get()
       _.forEach(playingData, (game, player) => {
@@ -23,8 +33,13 @@ module.exports = (match, say) => {
   })
   match(['watching', 'watch'], (search) => {
     if (search) {
-      watching.set(say.prototype.from, search)
-      say("You're watching " + search + "!")
+      if (matchEmpty(search)) {
+        watching.unset(say.prototype.from)
+        say('Watching cleared!')
+      } else {
+        watching.set(say.prototype.from, search)
+        say("You're watching " + search + "!")
+      }
     } else {
       let watchingData = watching.get()
       _.forEach(watchingData, (show, watcher) => {
@@ -34,8 +49,13 @@ module.exports = (match, say) => {
   })
   match(['listening', 'listen', 'listeningto'], (search) => {
     if (search) {
-      listeningTo.set(say.prototype.from, search)
-      say("You're listening to " + search + "!")
+      if (matchEmpty(search)) {
+        listeningTo.unset(say.prototype.from)
+        say('Song cleared!')
+      } else {
+        listeningTo.set(say.prototype.from, search)
+        say("You're listening to " + search + "!")
+      }
     } else {
       let listeners = listeningTo.get()
       _.forEach(listeners, (song, listener) => {
@@ -43,4 +63,16 @@ module.exports = (match, say) => {
       })
     }
   })
+
+  say.prototype.bot.addListener("nick", function(oldNick, newNick) {
+    if (playing.has(oldNick)) {
+      playing.move(oldNick, newNick)
+    }
+    if (watching.has(oldNick)) {
+      watching.move(oldNick, newNick)
+    }
+    if (listeningTo.has(oldNick)) {
+      listeningTo.move(oldNick, newNick)
+    }
+  });
 }

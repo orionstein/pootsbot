@@ -72,7 +72,10 @@ const Store = function() {
   return {
     createNameSpace: (name) => {
       let ns = new Namespace(name)
-      namespaces[name] = ns
+      if (ns)
+      {
+        namespaces[name] = ns
+      }
       return ns
     },
     getNamespaces: () => {

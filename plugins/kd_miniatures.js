@@ -3,6 +3,9 @@ let cheerio = require('cheerio');
 let _ = require('lodash');
 let async = require('async');
 
+let store = require('../utils/store')
+
+let miniatures = store.createNameSpace('miniatures')
 
 module.exports = function(match, say) {
   let defaultResponse = "lore";
@@ -35,8 +38,8 @@ module.exports = function(match, say) {
       });
     }
   }
-
-  match(['miniinfo', 'mini'], function(srch, command) {
+  
+  function showMiniInfo(srch, command) {
     let search = "";
     let stype = defaultResponse; // what type of data are we hunting for?
     let parser = command.split(' ');
@@ -87,25 +90,43 @@ module.exports = function(match, say) {
           case "summery":
           case "summary":
             say(entry.min_name + "\n  Summary:  " + entry.min_lore);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' lore ' + search)
+            })
             break;
           case "lore":
             say(entry.min_name + "\n  Lore:  " + entry.min_lore);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' sculptor ' + search)
+            })
             break;
           case "sculpt":
           case "sculpter":
           case "sculptor":
             say(entry.min_name + "\n  Sculptor:  " + entry.min_sculptor);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' artist ' + search)
+            })
             break;
           case "artist":
             say(entry.min_name + "\n  Artist:  " + entry.min_artist);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' notes ' + search)
+            })
             break;
           case "note":
           case "notes":
             say(entry.min_name + "\n  Notes:  " + entry.min_notes);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' art ' + search)
+            })
             break;
           case "art":
           case "artwork":
             say(entry.min_name + "\n  Artwork:  " + entry.min_artwork);
+            miniatures.tempMatch('more', () => {
+              showMiniInfo(undefined, parser[0] + ' pic ' + search)
+            })
             break;
           case "pic":
           case "picture":
@@ -124,7 +145,9 @@ module.exports = function(match, say) {
 
       }
     });
-  })
+  }
+
+  match(['miniinfo', 'mini'], showMiniInfo)
 
   function reduceMinis(entries) {
     return _.reduce(entries, function(str, entry) {

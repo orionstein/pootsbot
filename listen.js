@@ -6,6 +6,7 @@ let requireGlob = require('require-glob')
 // let wolfram = require('./plugins/wolfram')
 let linkQuery = require('./utils/linkQuery')
 // let minisPlugin = require('./plugins/kd_miniatures')
+let store = require('./utils/store')
 
 let prefix = process.env.POOTSBOT_PREFIX || '!'
 
@@ -29,7 +30,7 @@ const Match = function(text) {
       return false
     } else {
       if (cb) {
-        let search = text.substr(text.indexOf(' ') + 1)
+        let search = text.indexOf(' ') >= 0 ? text.substr(text.indexOf(' ') + 1) : undefined
         return cb(search, text)
       }
       else
@@ -45,7 +46,7 @@ const Say = function(bot, config, from, to) {
   _this.channelConf = config.channels[0]
   _this.from = from
   _this.to = to
-  return function(message, overrideRecipient) {
+  let sayFunction = function(message, overrideRecipient) {
     let recipient = _this.to === _this.nick ? _this.from : _this.to
     if (overrideRecipient === 'channel') {
       recipient = _this.channelConf
@@ -54,6 +55,8 @@ const Say = function(bot, config, from, to) {
     }
     return bot.say(recipient, message)
   }
+  sayFunction.prototype = _this;
+  return sayFunction
 }
 
 function listen(bot, config, from, to, text, message) {
@@ -65,6 +68,8 @@ function listen(bot, config, from, to, text, message) {
       module(match, say)
     })
 
+    store.runTempMatches(match, say)
+
     //any hard matches can be here
     match('version', function() {
       say('Current Commands - ', 'user');
@@ -73,6 +78,9 @@ function listen(bot, config, from, to, text, message) {
     match(['commands', 'help'], function() {
       say('Current Commands - ', 'user');
       say('!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram', 'user');
+    })
+    match(['namerecover'], () => {
+      bot.send('nick', 'pootsbot');
     })
     if (_.startsWith(_.lowerCase(text), 'damn you')) {
       let target = text.substr(9)
@@ -83,30 +91,6 @@ function listen(bot, config, from, to, text, message) {
     //any utils here - though, maybe utils should have their own folder
     linkQuery(bot, config, text)
   })
-  // if (_.startsWith(text.toLowerCase(), prefix + 'latestupdate')) {
-  //   getLatestUpdate(bot, config)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'pootsquote')) {
-  //   pootsQuote(bot, config)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'glossary')) {
-  //   glossaryPlugin.getGlossary(bot, config, text)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'searchglossary')) {
-  //   glossaryPlugin.searchGlossary(bot, config, text)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'wolfram')) {
-  //   wolfram(bot, config, text)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'version')) {
-  //   bot.say(config.channels[0], 'PootsBot version: ' + process.env.POOTSBOT_VERSION);
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'miniinfo')) {
-  //   minisPlugin.getMiniInfo(bot, config, text)
-  // }
-  // if (_.startsWith(text.toLowerCase(), prefix + 'searchmini')) {
-  //   minisPlugin.searchMinis(bot, config, text)
-  // }
 }
 
 module.exports = _.curry(listen)

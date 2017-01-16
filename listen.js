@@ -79,7 +79,7 @@ function listen(bot, config, from, to, text, message) {
       say('Current Commands - ', 'user');
       say('!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram', 'user');
     })
-    match(['namerecover'], () => {
+    match(['namerecover', 'reclaimname', 'recovername'], () => {
       bot.send('nick', 'pootsbot');
     })
     if (_.startsWith(_.lowerCase(text), 'damn you')) {

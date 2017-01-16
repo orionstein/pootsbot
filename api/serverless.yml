@@ -1,0 +1,115 @@
+
+service: pootsbot-api # NOTE: update this with your service name
+
+# You can pin your service to only deploy with a specific Serverless version
+# Check out our docs for more details
+# frameworkVersion: "=X.X.X"
+
+provider:
+  name: aws
+  runtime: nodejs4.3
+  apiKeys:
+    - POOTSBOTKEY
+  iamRoleStatements:
+    - Effect: "Allow"
+      Action:
+        - "ecs:ListClusters"
+        - "ecs:UpdateService"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "lambda:InvokeFunction"
+      Resource: "arn:aws:lambda:us-east-1:*:*"
+    - Effect: "Allow"
+      Action:
+        - "apigateway:GET"
+        - "apigateway:GetApiKey"
+        - "apigateway:GetApiKeys"
+      Resource: "arn:aws:apigateway:us-east-1:*:*"
+    - Effect: "Allow"
+      Action:
+        - "codebuild:ListProjects"
+        - "codebuild:StartBuild"
+        - "codebuild:BatchGetBuilds"
+        - "codebuild:StopBuild"
+        - "codebuild:ListBuildsForProject"
+      Resource: "*"
+    - Effect: "Allow"
+      Action:
+        - "dynamodb:DescribeTable"
+        - "dynamodb:Query"
+        - "dynamodb:Scan"
+        - "dynamodb:GetItem"
+        - "dynamodb:PutItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:DeleteItem"
+      Resource: "arn:aws:dynamodb:us-east-1:*:*"
+
+# you can overwrite defaults here
+#  stage: dev
+#  region: us-east-1
+
+# you can add statements to the Lambda function's IAM Role here
+
+functions:
+  storeGet:
+    handler: src/store/handler.get
+    events:
+      - http:
+          path: store
+          integration: lambda
+          method: get
+          private: true
+  storeSet:
+    handler: src/store/handler.set
+    events:
+      - http:
+          path: store
+          integration: lambda
+          method: post
+          private: true
+  pollBuild:
+    handler: src/deploy/pollBuild/handler.poll
+  stopBuilds:
+    handler: src/deploy/stopBuilds/handler.stop
+  restartBot:
+    handler: src/deploy/restartBot/handler.restart
+  deploy:
+    handler: src/deploy/build/handler.build
+    events:
+      - http:
+          path: build
+          integration: lambda
+          method: post
+
+resources:
+ Resources:
+    StoreTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "id"
+            AttributeType: "S"
+          - AttributeName: "status"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "id"
+            KeyType: "HASH"
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        TableName: "pootsbot-store"
+        GlobalSecondaryIndexes:
+          - IndexName: "status-index"
+            KeySchema:
+              - AttributeName: "status"
+                KeyType: "HASH"
+            ProvisionedThroughput:
+              ReadCapacityUnits: 1
+              WriteCapacityUnits: 1
+            Projection:
+              NonKeyAttributes:
+                - "data"
+                - "entryDate"
+                - "name"
+              ProjectionType: "INCLUDE"

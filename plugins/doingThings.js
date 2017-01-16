@@ -19,10 +19,10 @@ module.exports = (match, say) => {
     if (search) {
       if (matchEmpty(search)) {
         playing.unset(say.prototype.from)
-        say('Game cleared!')
+        say('Game cleared!', "user")
       } else {
         playing.set(say.prototype.from, search)
-        say("You're playing " + search + "!")
+        say("You're playing " + search + "!", "user")
       }
     } else {
       let playingData = playing.get()
@@ -35,10 +35,10 @@ module.exports = (match, say) => {
     if (search) {
       if (matchEmpty(search)) {
         watching.unset(say.prototype.from)
-        say('Watching cleared!')
+        say('Watching cleared!', "user")
       } else {
         watching.set(say.prototype.from, search)
-        say("You're watching " + search + "!")
+        say("You're watching " + search + "!", "user")
       }
     } else {
       let watchingData = watching.get()
@@ -50,11 +50,11 @@ module.exports = (match, say) => {
   match(['listening', 'listen', 'listeningto'], (search) => {
     if (search) {
       if (matchEmpty(search)) {
-        listeningTo.unset(say.prototype.from)
+        listeningTo.unset(say.prototype.from, "user")
         say('Song cleared!')
       } else {
         listeningTo.set(say.prototype.from, search)
-        say("You're listening to " + search + "!")
+        say("You're listening to " + search + "!", "user")
       }
     } else {
       let listeners = listeningTo.get()

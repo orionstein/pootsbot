@@ -24,6 +24,7 @@ provider:
       Action:
         - "apigateway:GET"
         - "apigateway:GetApiKey"
+        - "apigateway:GetApiKeys"
       Resource: "arn:aws:apigateway:us-east-1:*:*"
     - Effect: "Allow"
       Action:

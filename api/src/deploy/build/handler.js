@@ -33,14 +33,15 @@ module.exports.build = (event, context, callback) => {
   console.log('pingg!')
   console.log(event.headers)
   console.log(event.body)
-  gateway.getApiKeyAsync({
-    apiKey: 'POOTSBOTKEY',
-    includeValue: true
+  gateway.getApiKeysAsync({
+    nameQuery: 'POOTSBOTKEY',
+    includeValues: true
   })
     .then((data) => {
       console.log('gatekey?')
       console.log(data)
-      if (data.value === event.headers['X-Hub-Signature']) {
+      let key = data.items[0]
+      if (key.value === event.headers['X-Hub-Signature']) {
         if (event.body.ref === 'refs/heads/master') {
           return {
             projectName: 'pootsbot'

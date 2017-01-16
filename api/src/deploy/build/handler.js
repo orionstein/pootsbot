@@ -38,10 +38,18 @@ module.exports.build = (event, context, callback) => {
     includeValue: true
   })
     .then((data) => {
+      console.log('gatekey?')
       console.log(data)
       if (data.value === event.headers['X-Hub-Signature']) {
-        return {
-          projectName: 'pootsbot'
+        if (event.body.ref === 'refs/heads/master')
+        {
+          return {
+            projectName: 'pootsbot'
+          }
+        }
+        else
+        {
+          throw new Error('Only Build on Master')
         }
       } else {
         throw new Error('Invalid Key')

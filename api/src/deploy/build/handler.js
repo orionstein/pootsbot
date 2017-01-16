@@ -41,14 +41,11 @@ module.exports.build = (event, context, callback) => {
       console.log('gatekey?')
       console.log(data)
       if (data.value === event.headers['X-Hub-Signature']) {
-        if (event.body.ref === 'refs/heads/master')
-        {
+        if (event.body.ref === 'refs/heads/master') {
           return {
             projectName: 'pootsbot'
           }
-        }
-        else
-        {
+        } else {
           throw new Error('Only Build on Master')
         }
       } else {

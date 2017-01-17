@@ -5,17 +5,28 @@ let async = require('async')
 let store = require('../utils/store')
 let moment = require('moment')
 
-let listeningTo = store.createNameSpace('listeningTo')
-let watching = store.createNameSpace('watching')
-let playing = store.createNameSpace('playing')
+// let listeningTo = store.createNameSpace('listeningTo')
+// let watching = store.createNameSpace('watching')
+// let playing = store.createNameSpace('playing')
 let iam = store.createNameSpace('iam')
 
 const matchEmpty = (text) => {
   return (text.trim() === 'nothing') ||
-    (text.trim() === 'to nothing')
+    (text.trim() === 'to nothing') ||
+    (text.trim() === 'doing nothing') ||
+    (text.trim() === 'clear')
+
 }
 
-module.exports = (match, say) => {
+const init = (bot) => {
+  bot.addListener("nick", function(oldNick, newNick) {
+    if (iam.has(oldNick)) {
+      iam.move(oldNick, newNick)
+    }
+  });
+}
+
+function doing(match, say) {
   match(['iam'], (search) => {
     if (search) {
       if (matchEmpty(search)) {
@@ -34,61 +45,24 @@ module.exports = (match, say) => {
   })
   match(['playing', 'play'], (search) => {
     if (search) {
-      if (matchEmpty(search)) {
-        playing.unset(say.prototype.from)
-        say('Game cleared!', "user")
-      } else {
-        playing.set(say.prototype.from, search)
-        say("You're playing " + search + "!", "user")
-      }
-    } else {
-      let playingData = playing.get()
-      _.forEach(playingData, (game, player) => {
-        say(player + " is playing " + game)
-      })
+      iam.set(say.prototype.from, 'playing ' + search)
+      say("You're playing " + search + "!", "user")
     }
   })
   match(['watching', 'watch'], (search) => {
     if (search) {
-      if (matchEmpty(search)) {
-        watching.unset(say.prototype.from)
-        say('Watching cleared!', "user")
-      } else {
-        watching.set(say.prototype.from, search)
-        say("You're watching " + search + "!", "user")
-      }
-    } else {
-      let watchingData = watching.get()
-      _.forEach(watchingData, (show, watcher) => {
-        say(watcher + " is watching " + show)
-      })
+      iam.set(say.prototype.from, 'watching ' + search)
+      say("You're watching " + search + "!", "user")
     }
   })
   match(['listening', 'listen', 'listeningto'], (search) => {
     if (search) {
-      if (matchEmpty(search)) {
-        listeningTo.unset(say.prototype.from, "user")
-        say('Song cleared!')
-      } else {
-        listeningTo.set(say.prototype.from, search)
-        say("You're listening to " + search + "!", "user")
-      }
-    } else {
-      let listeners = listeningTo.get()
-      _.forEach(listeners, (song, listener) => {
-        say(listener + " is listening to " + song)
-      })
+      iam.set(say.prototype.from, 'listening to ' + search)
+      say("You're listening to " + search + "!", "user")
     }
   })
-  say.prototype.bot.addListener("nick", function(oldNick, newNick) {
-    if (playing.has(oldNick)) {
-      playing.move(oldNick, newNick)
-    }
-    if (watching.has(oldNick)) {
-      watching.move(oldNick, newNick)
-    }
-    if (listeningTo.has(oldNick)) {
-      listeningTo.move(oldNick, newNick)
-    }
-  });
 }
+
+doing.prototype.init = init
+
+module.exports = doing

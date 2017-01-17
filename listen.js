@@ -10,6 +10,23 @@ let store = require('./utils/store')
 
 let prefix = process.env.POOTSBOT_PREFIX || '!'
 
+let modules = []
+
+
+const init = (bot, config) => {
+  store.init(bot, () => {
+    requireGlob(['./plugins/*.js', '!linkQuery.js']).then(function(pulledModules) {
+      modules = pulledModules
+      _.forEach(modules, (module) => {
+        if (module.prototype && module.prototype.init)
+        {
+          module.prototype.init(bot)
+        }
+      })
+    })
+  })
+}
+
 const matchText = _.curry(function(text, match) {
   match = match.toLowerCase()
   return _.startsWith(text, (prefix + match));
@@ -62,35 +79,36 @@ const Say = function(bot, config, from, to) {
 function listen(bot, config, from, to, text, message) {
   let match = new Match(text)
   let say = new Say(bot, config, from, to)
-  requireGlob(['./plugins/*.js', '!linkQuery.js']).then(function (modules){
-    //load and run each module in plugins, except for few
-    _.forEach(modules, function(module){
-      module(match, say)
-    })
-
-    store.runTempMatches(match, say)
-
-    //any hard matches can be here
-    match('version', function() {
-      say('Current Commands - ', 'user');
-      say('PootsBot version: ' + process.env.POOTSBOT_VERSION);
-    })
-    match(['commands', 'help'], function() {
-      say('Current Commands - ', 'user');
-      say('!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram', 'user');
-    })
-    match(['namerecover', 'reclaimname', 'recovername'], () => {
-      bot.send('nick', 'pootsbot');
-    })
-    if (_.startsWith(_.lowerCase(text), 'damn you')) {
-      let target = text.substr(9)
-      bot.say(config.channels[0], 'We will come down on ' + target + ' like the hammer of Thor.');
-      bot.say(config.channels[0], 'The thunder of my vengeance will echo through their heart like the gust of a thousand winds!');
-    }
-
-    //any utils here - though, maybe utils should have their own folder
-    linkQuery(bot, config, text)
+  //load and run each module in plugins, except for few
+  
+  _.forEach(modules, function(module) {
+    module(match, say)
   })
+
+  store.runTempMatches(match, say)
+
+  //any hard matches can be here
+  match('version', function() {
+    say('Current Commands - ', 'user');
+    say('PootsBot version: ' + process.env.POOTSBOT_VERSION);
+  })
+  match(['commands', 'help'], function() {
+    say('Current Commands - ', 'user');
+    say('!PootsQuote, !latestUpdate, !glossary, !searchGlossary, !wolfram', 'user');
+  })
+  match(['namerecover', 'reclaimname', 'recovername'], () => {
+    bot.send('nick', 'pootsbot');
+  })
+  if (_.startsWith(_.lowerCase(text), 'damn you')) {
+    let target = text.substr(9)
+    bot.say(config.channels[0], 'We will come down on ' + target + ' like the hammer of Thor.');
+    bot.say(config.channels[0], 'The thunder of my vengeance will echo through their heart like the gust of a thousand winds!');
+  }
+
+  //any utils here - though, maybe utils should have their own folder
+  linkQuery(bot, config, text)
 }
 
-module.exports = _.curry(listen)
+listen.prototype.init = init
+
+module.exports = listen

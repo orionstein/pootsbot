@@ -26,30 +26,22 @@ module.exports = (match, say) => {
       listPolls(polls.get().polls)
     } else if (_.startsWith(search.trim(), 'help')) {
       say('Create a new Poll with !poll {Question}? {Option1}, {Option2}...')
+      say('If you want multiple selections, use !poll multi {Question}? {Option1}, {Option2}...')
       say('List Polls by just writing !poll')
     } else if (_.startsWith(search.trim(), 'remove')) {
-      // search = search.substr(6).trim()
-      // let pollList = polls.get().polls
-      // console.log(search)
-      // console.log(pollList)
-      // let rm = _.pullAllWith(pollList, [search], (p, s) => {
-      //   console.log(p)
-      //   let aa = ~~p.id === ~~search
-      //   console.log(aa)
-      //   return aa
-      // })
-      // console.log(rm)
-      // console.log(rm.length)
-      // console.log(pollList.length)
-      // polls.set('polls', rm)
-      // if (rm.length != pollList.length)
-      // {
-      //   say('Poll Removed', 'user')
-      // }
-      // else
-      // {
-      //   say('Poll not found', 'user')
-      // }
+      search = search.substr(6).trim()
+      let pollList = polls.get().polls
+      let origLength = pollList.length;
+      _.pullAllWith(pollList, [search], (p, s) => {
+        return ~~p.id === ~~search
+      })
+      polls.set('polls', null)
+      polls.set('polls', pollList)
+      if (origLength != pollList.length) {
+        say('Poll Removed', 'user')
+      } else {
+        say('Poll not found', 'user')
+      }
     } else {
       if (_.startsWith(search.trim(), 'multi')) {
         search = search.substr(5).trim()
@@ -60,9 +52,9 @@ module.exports = (match, say) => {
       let options = parse[1].split(',')
       let reqBody = {
         title: (question + '?'),
-        options: options
+        options: options,
+        multi: multiSetting,
       }
-      console.log(reqBody)
       let req = {
         url: 'https://strawpoll.me/api/v2/polls',
         json: true,
@@ -79,7 +71,8 @@ module.exports = (match, say) => {
           let newPoll = {
             id: body.id,
             title: body.title,
-            url: 'http://www.strawpoll.me/' + body.id
+            url: 'http://www.strawpoll.me/' + body.id,
+            user: say.prototype.from
           }
           let pollObj = polls.get()
           let newPolls = pollObj.polls || []
@@ -87,7 +80,7 @@ module.exports = (match, say) => {
           polls.set('polls', newPolls)
           say('Poll created at ' + newPoll.url, 'user')
           say('To remove poll, use !poll remove ' + newPoll.id, 'user')
-          say.prototype.bot.say('chanserv', 'set ' + say.prototype.channelConf + ' ENTRYMSG ' + 'New Poll: ' + newPoll.title + ' - ' + newPoll.url);
+        // say.prototype.bot.say('chanserv', 'set ' + say.prototype.channelConf + ' ENTRYMSG ' + 'New Poll: ' + newPoll.title + ' - ' + newPoll.url);
         } else {
           console.log(error)
         }

@@ -6,6 +6,12 @@ const _ = require('lodash');
 const bluebird = require('bluebird');
 const uuid = require('node-uuid')
 const async = require('async')
+var crypto;
+try {
+  crypto = require('crypto');
+} catch (err) {
+  console.log('crypto support is disabled!');
+}
 
 var codebuild = bluebird.promisifyAll((new aws.CodeBuild(
   {
@@ -33,6 +39,7 @@ module.exports.build = (event, context, callback) => {
   console.log('pingg!')
   console.log(event.headers)
   console.log(event.body)
+
   gateway.getApiKeysAsync({
     nameQuery: 'POOTSBOTKEY',
     includeValues: true
@@ -41,16 +48,27 @@ module.exports.build = (event, context, callback) => {
       console.log('gatekey?')
       console.log(data)
       let key = data.items[0]
-      if (key.value === event.headers['X-Hub-Signature']) {
-        if (event.body.ref === 'refs/heads/master') {
-          return {
-            projectName: 'pootsbot'
+      if (event.body.ref === 'refs/heads/master') {
+        if (crypto) {
+          let hash = crypto.createHmac('sha1', key.value).update(event.body).digest('hex')
+          if (hash === event.headers['X-Hub-Signature']) {
+            return {
+              projectName: 'pootsbot'
+            }
+          } else {
+            throw new Error('Invalid Key')
           }
         } else {
-          throw new Error('Only Build on Master')
+          if (event.body.repository['full_name'] === 'orionstein/pootsbot') {
+            return {
+              projectName: 'pootsbot'
+            }
+          } else {
+            throw new Error('Invalid Key')
+          }
         }
       } else {
-        throw new Error('Invalid Key')
+        throw new Error('Only Build on Master')
       }
     }
   )

@@ -40,6 +40,36 @@ module.exports.build = (event, context, callback) => {
   console.log(event.headers)
   console.log(event.body)
 
+  const doBuild = () => {
+    codebuild.startBuildAsync({
+      projectName: 'pootsbot'
+    })
+      .then((data) => {
+        console.log('parallel, yo!')
+        console.log(data)
+        let newItem = data
+        console.log(newItem)
+        let funcData = {
+          FunctionName: 'pootsbot-api-dev-pollBuild',
+          InvocationType: 'Event',
+          Payload: JSON.stringify(newItem)
+        }
+        lambda.invokePromise(funcData)
+          .then((data) => {
+            let funcData = {
+              FunctionName: 'pootsbot-api-dev-stopBuilds',
+              InvocationType: 'Event',
+              Payload: JSON.stringify(newItem)
+            }
+            lambda.invokePromise(funcData)
+              .then((data) => {
+                context.succeed(true);
+              })
+          })
+      }
+    )
+  }
+
   gateway.getApiKeysAsync({
     nameQuery: 'POOTSBOTKEY',
     includeValues: true
@@ -53,51 +83,16 @@ module.exports.build = (event, context, callback) => {
           let hash = crypto.createHmac('sha1', key.value).update(JSON.stringify(event.body)).digest('hex')
           let strHash = 'sha1=' + hash
           if (strHash === event.headers['X-Hub-Signature']) {
-            return {
-              projectName: 'pootsbot'
-            }
+            doBuild()
           } else {
             throw new Error('Invalid Key')
           }
         } else {
-          if (event.body.repository['full_name'] === 'orionstein/pootsbot') {
-            return {
-              projectName: 'pootsbot'
-            }
-          } else {
-            throw new Error('Invalid Key')
-          }
+          throw new Error('No Crypto!!!')
         }
       } else {
         throw new Error('Only Build on Master')
       }
     }
   )
-    .then(codebuild.startBuildAsync)
-    .then((data) => {
-      console.log('parallel, yo!')
-      console.log(data)
-      let newItem = data
-      console.log(newItem)
-      let funcData = {
-        FunctionName: 'pootsbot-api-dev-pollBuild',
-        InvocationType: 'Event',
-        Payload: JSON.stringify(newItem)
-      }
-      return funcData
-    }
-  )
-    .then(lambda.invokePromise)
-    .then((data) => {
-      let funcData = {
-        FunctionName: 'pootsbot-api-dev-stopBuilds',
-        InvocationType: 'Event',
-        Payload: JSON.stringify(newItem)
-      }
-      return funcData
-    })
-    .then(lambda.invokePromise)
-    .then(() => {
-      context.succeed(true);
-    })
 };

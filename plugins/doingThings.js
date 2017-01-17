@@ -8,6 +8,7 @@ let moment = require('moment')
 let listeningTo = store.createNameSpace('listeningTo')
 let watching = store.createNameSpace('watching')
 let playing = store.createNameSpace('playing')
+let iam = store.createNameSpace('iam')
 
 const matchEmpty = (text) => {
   return (text.trim() === 'nothing') ||
@@ -15,6 +16,22 @@ const matchEmpty = (text) => {
 }
 
 module.exports = (match, say) => {
+  match(['iam'], (search) => {
+    if (search) {
+      if (matchEmpty(search)) {
+        iam.unset(say.prototype.from)
+        say('Cleared!', "user")
+      } else {
+        iam.set(say.prototype.from, search)
+        say("You're " + search + "!", "user")
+      }
+    } else {
+      let iamData = iam.get()
+      _.forEach(iamData, (iamThing, player) => {
+        say(player + " is " + iamThing)
+      })
+    }
+  })
   match(['playing', 'play'], (search) => {
     if (search) {
       if (matchEmpty(search)) {

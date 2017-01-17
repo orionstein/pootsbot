@@ -19,42 +19,35 @@ var ecs = bluebird.promisifyAll(new aws.ECS(
 
 module.exports.restart = (event, context, callback) => {
   const restartPootsBot = () => {
-    console.log('lets go boys!')
     let serviceParams = {
       service: 'pootsbot',
       desiredCount: 0
     }
     ecs.updateServiceAsync(serviceParams)
       .then((data) => {
-        console.log(data)
-        function doRestart() {
-          let task = [data.service.deployments[0].id]
-          let params = {
-            tasks: task
-          }
-          ecs.waitFor('tasksStopped', params, (err, data) => {
-            console.log('stopped!')
-            console.log(data)
+        let task = [data.service.deployments[0].id]
+        let params = {
+          tasks: task
+        }
+        ecs.waitFor('tasksStopped', params, (err, data) => {
+          function doRestart() {
             let newServiceParams = {
               service: 'pootsbot',
               desiredCount: 1
             }
             ecs.updateServiceAsync(newServiceParams)
               .then((data) => {
-                console.log('started')
-                console.log(data)
                 let task = [data.service.deployments[0].id]
                 let params = {
                   tasks: task
                 }
-                ecs.waitFor('tasksStarted', params, (err, data) => {
-                  console.log('done!')
+                ecs.waitFor('tasksRunning', params, (err, data) => {
                   context.succeed(true);
                 })
               })
-          })
-        }
-        _.delay(doRestart, 3000, {})
+          }
+          _.delay(doRestart, 3000, {})
+        })
       })
   }
   restartPootsBot()

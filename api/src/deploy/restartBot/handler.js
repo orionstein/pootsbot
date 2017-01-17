@@ -40,8 +40,16 @@ module.exports.restart = (event, context, callback) => {
           }
           ecs.updateServiceAsync(newServiceParams)
             .then((data) => {
-              console.log('done!')
-              context.succeed(true);
+              console.log('started')
+              console.log(data)
+              let task = [data.service.deployments[0].id]
+              let params = {
+                tasks: task
+              }
+              ecs.waitFor('tasksStarted', params, (err, data) => {
+                console.log('done!')
+                context.succeed(true);
+              })
             })
         })
       })

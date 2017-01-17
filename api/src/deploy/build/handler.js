@@ -36,19 +36,12 @@ var gateway = bluebird.promisifyAll(new aws.APIGateway(
   }));
 
 module.exports.build = (event, context, callback) => {
-  console.log('pingg!')
-  console.log(event.headers)
-  console.log(event.body)
-
   const doBuild = () => {
     codebuild.startBuildAsync({
       projectName: 'pootsbot'
     })
       .then((data) => {
-        console.log('parallel, yo!')
-        console.log(data)
         let newItem = data
-        console.log(newItem)
         let funcData = {
           FunctionName: 'pootsbot-api-dev-pollBuild',
           InvocationType: 'Event',
@@ -75,8 +68,6 @@ module.exports.build = (event, context, callback) => {
     includeValues: true
   })
     .then((data) => {
-      console.log('gatekey?')
-      console.log(data)
       let key = data.items[0]
       if (event.body.ref === 'refs/heads/master') {
         if (crypto) {

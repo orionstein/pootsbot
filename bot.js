@@ -3,6 +3,7 @@ let request = require('request')
 let cheerio = require('cheerio')
 let _ = require('lodash')
 let async = require('async')
+let store = require('./utils/store')
 
 let config = {
   channels: [(process.env.POOTSBOT_CHANNEL || '#pootsbottest')],
@@ -17,11 +18,14 @@ let bot = new irc.Client(config.server, config.botName, {
   channels: config.channels
 });
 
+store.init(bot)
+
 let opList = process.env.POOTSBOT_OPERATORS.split(',') || []
 
 bot.addListener('registered', function() {
   bot.send('nick', 'pootsbot');
   bot.say('nickserv', 'identify ' + config.password);
+  bot.say(config.channels[0], 'PootsBot Online');
 })
 
 bot.addListener('error', function(message) {

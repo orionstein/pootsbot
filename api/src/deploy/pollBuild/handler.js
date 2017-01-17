@@ -27,13 +27,9 @@ var ecs = bluebird.promisifyAll(new aws.ECS(
 module.exports.poll = (event, context, callback) => {
 
   const pollBuild = (buildId) => {
-    console.log('gogogo')
-    console.log(buildId)
     return codebuild.batchGetBuildsAsync({
       ids: [buildId]
     }).then((data) => {
-      console.log('polling')
-      console.log(data)
       let build = data.builds[0]
       if (!build.buildComplete) {
         function repoll(id) {
@@ -46,10 +42,7 @@ module.exports.poll = (event, context, callback) => {
               }
             })
           }
-          console.log('ok, right before lambada')
-          console.log(funcData)
           lambda.invokePromise(funcData).then((data) => {
-            console.log('going')
             context.succeed(true);
           })
         }
@@ -59,7 +52,6 @@ module.exports.poll = (event, context, callback) => {
           FunctionName: 'pootsbot-api-dev-restartBot',
           InvocationType: 'Event'
         }
-        console.log('its fucking done mang!!!')
         lambda.invokePromise(funcData).then((data) => {
           context.succeed(true);
         })
@@ -67,7 +59,6 @@ module.exports.poll = (event, context, callback) => {
     })
   }
 
-  console.log(event)
   if (event.build.id) {
     pollBuild(event.build.id)
   } else {

@@ -27,31 +27,34 @@ module.exports.restart = (event, context, callback) => {
     ecs.updateServiceAsync(serviceParams)
       .then((data) => {
         console.log(data)
-        let task = [data.service.deployments[0].id]
-        let params = {
-          tasks: task
-        }
-        ecs.waitFor('tasksStopped', params, (err, data) => {
-          console.log('stopped!')
-          console.log(data)
-          let newServiceParams = {
-            service: 'pootsbot',
-            desiredCount: 1
+        function doRestart() {
+          let task = [data.service.deployments[0].id]
+          let params = {
+            tasks: task
           }
-          ecs.updateServiceAsync(newServiceParams)
-            .then((data) => {
-              console.log('started')
-              console.log(data)
-              let task = [data.service.deployments[0].id]
-              let params = {
-                tasks: task
-              }
-              ecs.waitFor('tasksStarted', params, (err, data) => {
-                console.log('done!')
-                context.succeed(true);
+          ecs.waitFor('tasksStopped', params, (err, data) => {
+            console.log('stopped!')
+            console.log(data)
+            let newServiceParams = {
+              service: 'pootsbot',
+              desiredCount: 1
+            }
+            ecs.updateServiceAsync(newServiceParams)
+              .then((data) => {
+                console.log('started')
+                console.log(data)
+                let task = [data.service.deployments[0].id]
+                let params = {
+                  tasks: task
+                }
+                ecs.waitFor('tasksStarted', params, (err, data) => {
+                  console.log('done!')
+                  context.succeed(true);
+                })
               })
-            })
-        })
+          })
+        }
+        _.delay(doRestart, 3000, {})
       })
   }
   restartPootsBot()

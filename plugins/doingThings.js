@@ -63,7 +63,6 @@ module.exports = (match, say) => {
       })
     }
   })
-
   say.prototype.bot.addListener("nick", function(oldNick, newNick) {
     if (playing.has(oldNick)) {
       playing.move(oldNick, newNick)

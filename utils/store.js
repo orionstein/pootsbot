@@ -1,7 +1,10 @@
 let _ = require('lodash')
 let uuid = require('node-uuid')
+let request = require('request')
 
 let timeOutVal = process.env.POOTSBOT_TEMPMATCH_TIMEOUT || 100000
+let storeApi = process.env.POOTSBOT_API_URL
+let storeApiKey = process.env.POOTSBOT_API_KEY
 
 const Store = function() {
   let namespaces = {
@@ -35,14 +38,13 @@ const Store = function() {
     matchFunc.prototype = _this
     return matchFunc
   }
-  function Namespace(name) {
+  function Namespace(name, data) {
     if (namespaces[name]) {
-      console.log('namespace is already assumed')
       return false
     }
     let _this = this
     _this.name = name
-    _this.data = {}
+    _this.data = data || {}
     return {
       has: (prop) => {
         return !!_this.data[prop]
@@ -64,6 +66,21 @@ const Store = function() {
           _this.data = _.merge({}, _this.data, {
             [prop]: data
           })
+          if (storeApi && storeApiKey) {
+            request({
+              url: storeApi,
+              method: 'POST',
+              body: JSON.stringify({
+                name: _this.name,
+                data: _this.data
+              }),
+              headers: {
+                'x-api-key': storeApiKey
+              }
+            }, () => {
+              console.log('saved')
+            })
+          }
         }
       },
       unset: (prop) => {
@@ -89,17 +106,46 @@ const Store = function() {
   }
   return {
     createNameSpace: (name) => {
-      let ns = new Namespace(name)
-      if (ns) {
-        namespaces[name] = ns
+      if (!!namespaces[name]) {
+        return namespaces[name]
+      } else {
+        let ns = new Namespace(name)
+        if (ns) {
+          namespaces[name] = ns
+        }
+        return ns
       }
-      return ns
+    },
+    hasNamespace: (name) => {
+      return !!namespaces[name]
     },
     getNamespaces: () => {
       return _.keys(namespaces)
     },
     getNamespace: (name) => {
       return namespaces[name]
+    },
+    init: (bot) => {
+      if (storeApi && storeApiKey) {
+        return request({
+          url: storeApi,
+          method: 'GET',
+          json: true,
+          headers: {
+            'x-api-key': storeApiKey
+          }
+        }, (error, res, data) => {
+          _.forEach(data.items, (item) => {
+            let ns = new Namespace(item.name, item.data)
+            if (ns) {
+              namespaces[item.name] = ns
+            }
+          })
+          // return bot.connect()
+        })
+      } else {
+        // return bot.connect()
+      }
     },
     runTempMatches: runTempMatches,
     clearTempmatches: clearTempmatches

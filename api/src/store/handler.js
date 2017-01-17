@@ -7,7 +7,7 @@ const bluebird = require('bluebird');
 const uuid = require('node-uuid')
 const db = require('../shared/dynamoHelper');
 
-const pootsbotStoreTable = process.env.POOTSBOT_STORE_TABLE || 'pootsbot-store'
+const pootsbotStoreTable = 'pootsbot-store'
 
 module.exports.get = (event, context, callback) => {
   let params = {
@@ -30,8 +30,7 @@ module.exports.get = (event, context, callback) => {
       item = {
         data: msgpack.unpack(item.data.B),
         date: parseInt(item.entryDate.N),
-        name: item.name.S,
-        id: item.id.S
+        name: item.name.S
       };
       return item;
     });
@@ -47,15 +46,11 @@ module.exports.get = (event, context, callback) => {
 };
 
 module.exports.set = (event, context, callback) => {
-  console.log(event.body)
   if (event.body.name && event.body.data) {
     var compressed = msgpack.pack(event.body.data);
     var params = {
       TableName: pootsbotStoreTable,
       "Item": {
-        "id": {
-          "S": uuid.v1()
-        },
         "name": {
           "S": event.body.name
         },

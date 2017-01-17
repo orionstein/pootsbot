@@ -18,7 +18,6 @@ module.exports = (match, say) => {
       json: true
     }, (error, res, body) => {
       if (!error) {
-        console.log(body)
         if (body && body.data && body.data.children) {
           _.forEach(body.data.children, (post) => {
             if (post.data && post.data.title && post.data.url && !post.data.stickied)

@@ -69,6 +69,7 @@ module.exports.build = (event, context, callback) => {
   })
     .then((data) => {
       let key = data.items[0]
+      console.log(event.body)
       if (event.body.ref === 'refs/heads/master') {
         if (crypto) {
           let hash = crypto.createHmac('sha1', key.value).update(JSON.stringify(event.body)).digest('hex')

@@ -50,7 +50,7 @@ module.exports.build = (event, context, callback) => {
       let key = data.items[0]
       if (event.body.ref === 'refs/heads/master') {
         if (crypto) {
-          let hash = crypto.createHmac('sha1', key.value).update(event.body).digest('hex')
+          let hash = crypto.createHmac('sha1', key.value).update(event.body.toString()).digest('hex')
           if (hash === event.headers['X-Hub-Signature']) {
             return {
               projectName: 'pootsbot'

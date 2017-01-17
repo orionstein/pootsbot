@@ -1,1 +1,2 @@
 # pootsbot
+todo - more readme

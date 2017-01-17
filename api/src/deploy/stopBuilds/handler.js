@@ -30,7 +30,6 @@ module.exports.stop = (event, context, callback) => {
     projectName: 'pootsbot'
   }).then((data) => {
     let jobs = []
-    console.log('gotjobs!')
     if (data.ids.length > 0) {
       _.take(_.pull(data.ids, newestId), 5).map((id) => {
         jobs.push(codebuild.stopBuildAsync({
@@ -39,7 +38,7 @@ module.exports.stop = (event, context, callback) => {
       })
     }
     bluebird.all(jobs).then((data) => {
-      console.log('stoppedjobs!')
+      _.noop()
     })
   })
 };

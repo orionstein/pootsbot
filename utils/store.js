@@ -70,11 +70,11 @@ const Store = function() {
       },
       get: (prop) => {
         if (prop) {
-          return _.merge({}, {
+          return Object.assign({}, {
             data: _.get(_this.data, prop)
           })
         } else {
-          return _.merge({}, _this.data)
+          return Object.assign({}, _this.data)
         }
       },
       set: (prop, data) => {
@@ -82,7 +82,7 @@ const Store = function() {
           console.log('cant overwrite namespace')
           return
         } else {
-          _this.data = _.merge({}, _this.data, {
+          _this.data = Object.assign({}, _this.data, {
             [prop]: data
           })
           backupStore(_this.name, _this.data)

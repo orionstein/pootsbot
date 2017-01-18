@@ -23,21 +23,19 @@ module.exports = (match, say) => {
   match(['poll', 'createpoll'], (search) => {
     let multiSetting = false;
     if (!search) {
-      listPolls(polls.get().polls)
+      listPolls(polls.get('polls').data)
     } else if (_.startsWith(search.trim(), 'help')) {
       say('Create a new Poll with !poll {Question}? {Option1}, {Option2}...')
       say('If you want multiple selections, use !poll multi {Question}? {Option1}, {Option2}...')
       say('List Polls by just writing !poll')
     } else if (_.startsWith(search.trim(), 'remove')) {
       search = search.substr(6).trim()
-      let pollList = polls.get().polls
-      let origLength = pollList.length;
-      _.pullAllWith(pollList, [search], (p, s) => {
-        return ~~p.id === ~~search
+      let pollList = polls.get('polls').data
+      let rem = _.remove(pollList, {
+        id: ~~search
       })
-      polls.set('polls', null)
       polls.set('polls', pollList)
-      if (origLength != pollList.length) {
+      if (rem.length > 0) {
         say('Poll Removed', 'user')
       } else {
         say('Poll not found', 'user')

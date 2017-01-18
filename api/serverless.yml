@@ -74,6 +74,8 @@ functions:
     handler: src/deploy/stopBuilds/handler.stop
   restartBot:
     handler: src/deploy/restartBot/handler.restart
+  startBot:
+    handler: src/deploy/startBot/handler.start
   deploy:
     handler: src/deploy/build/handler.build
     events:

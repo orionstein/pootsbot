@@ -17,23 +17,29 @@ var ecs = bluebird.promisifyAll(new aws.ECS(
     region: "us-east-1",
   }));
 
-module.exports.restart = (event, context, callback) => {
-  const restartPootsBot = () => {
+module.exports.start = (event, context, callback) => {
+  const startPootsBot = () => {
     let serviceParams = {
       service: 'pootsbot',
-      desiredCount: 0
+      desiredCount: 1
     }
     ecs.updateServiceAsync(serviceParams)
       .then((data) => {
-        console.log('stopped!')
+        console.log('started!')
         let task = [data.service.deployments[0].id]
         let params = {
           tasks: task
         }
-        ecs.waitFor('tasksStopped', params, (err, data) => {
-          console.log('really stopped!')
+        ecs.waitFor('tasksRunning', params, (err, data) => {
+          console.log('really started!')
         })
       })
   }
-  restartPootsBot()
+
+
+  if (event && _.includes(event.detail.taskDefinitionArn, 'pootsbot') && (event.detail.desiredStatus === 'STOPPED') && (!!event.detail.stoppedAt)) {
+    startPootsBot()
+  }
+
+// startPootsBot()
 };

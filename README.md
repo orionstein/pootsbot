@@ -1,2 +1,2 @@
 # pootsbot
-Up
+todo - more readme

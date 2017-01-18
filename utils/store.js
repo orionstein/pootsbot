@@ -6,13 +6,34 @@ let timeOutVal = process.env.POOTSBOT_TEMPMATCH_TIMEOUT || 100000
 let storeApi = process.env.POOTSBOT_API_URL
 let storeApiKey = process.env.POOTSBOT_API_KEY
 
+const backupStore = (name, data) => {
+  if (storeApi && storeApiKey) {
+    request({
+      url: storeApi,
+      method: 'POST',
+      body: JSON.stringify({
+        name: name,
+        data: data
+      }),
+      headers: {
+        'x-api-key': storeApiKey
+      }
+    }, () => {
+      //console.log('saved')
+      _.noop()
+    })
+  }
+}
+
 const Store = function() {
   let namespaces = {
   }
   let tempMatches = []
   const clearTempmatches = () => {
     _.pullAllWith(tempMatches, '1', (matchF, id) => {
-      return ((Date.now() - matchF.prototype.timestamp) > timeOutVal)
+      let isPastDate = ((Date.now() - matchF.prototype.timestamp) > timeOutVal)
+      let isDone = matchF.prototype.done
+      return (isPastDate || isDone)
     })
   }
   const runTempMatches = (match, say) => {
@@ -30,9 +51,7 @@ const Store = function() {
     const matchFunc = (match, say) => {
       match(_this.toMatch, () => {
         cb()
-        _.pullAllWith(tempMatches, _this.id, (matchF, id) => {
-          return _this.id === matchF.prototype.id
-        })
+        matchFunc.prototype.done = true
       })
     }
     matchFunc.prototype = _this
@@ -51,11 +70,11 @@ const Store = function() {
       },
       get: (prop) => {
         if (prop) {
-          return _.merge({}, {
+          return Object.assign({}, {
             data: _.get(_this.data, prop)
           })
         } else {
-          return _.merge({}, _this.data)
+          return Object.assign({}, _this.data)
         }
       },
       set: (prop, data) => {
@@ -63,29 +82,16 @@ const Store = function() {
           console.log('cant overwrite namespace')
           return
         } else {
-          _this.data = _.merge({}, _this.data, {
+          _this.data = Object.assign({}, _this.data, {
             [prop]: data
           })
-          if (storeApi && storeApiKey) {
-            request({
-              url: storeApi,
-              method: 'POST',
-              body: JSON.stringify({
-                name: _this.name,
-                data: _this.data
-              }),
-              headers: {
-                'x-api-key': storeApiKey
-              }
-            }, () => {
-              console.log('saved')
-            })
-          }
+          backupStore(_this.name, _this.data)
         }
       },
       unset: (prop) => {
         delete _this.data[prop]
         _this.data = Object.assign({}, _this.data)
+        backupStore(_this.name, _this.data)
       },
       move: (fromProp, toProp) => {
         if (!!_this.data[toProp] || !_this.data[fromProp]) {
@@ -96,6 +102,7 @@ const Store = function() {
           }
           delete _this.data[fromProp]
           _this.data = Object.assign({}, _this.data, newData)
+          backupStore(_this.name, _this.data)
         }
       },
       tempMatch: (toMatch, cb) => {
@@ -125,7 +132,7 @@ const Store = function() {
     getNamespace: (name) => {
       return namespaces[name]
     },
-    init: (bot) => {
+    init: (bot, cb) => {
       if (storeApi && storeApiKey) {
         return request({
           url: storeApi,
@@ -140,11 +147,13 @@ const Store = function() {
             if (ns) {
               namespaces[item.name] = ns
             }
+            cb()
           })
-          // return bot.connect()
+        // return bot.connect()
         })
       } else {
-        // return bot.connect()
+        cb()
+      // return bot.connect()
       }
     },
     runTempMatches: runTempMatches,

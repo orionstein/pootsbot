@@ -18,8 +18,6 @@ let bot = new irc.Client(config.server, config.botName, {
   channels: config.channels
 });
 
-store.init(bot)
-
 let opList = process.env.POOTSBOT_OPERATORS.split(',') || []
 
 bot.addListener('registered', function() {
@@ -52,4 +50,8 @@ bot.addListener("join", function(channel, who) {
   }
 });
 
-bot.addListener("message", require('./listen')(bot, config));
+let listen = require('./listen.js')
+
+listen.prototype.init(bot)
+
+bot.addListener("message", _.curry(listen)(bot, config));

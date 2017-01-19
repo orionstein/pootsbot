@@ -210,44 +210,44 @@ function joinMiniData(search) {
   console.log('searching')
   let helpers = {
     expand: (input) => {
-      console.log(input)
-      let item = input
-
-      item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
-        data: {
-          match: item,
-          data
-        }
-      }).value
-
-      item.min_artist = query('data.artists.min_artists[{match.min_artist}]', {
-        data: {
-          match: item,
-          data
-        }
-      }).value
-
-      if (!_.isEmpty(item.min_sets)) {
-        let sets = item.min_sets.split(',')
-        let matchSetQuery = _.map(sets, (item) => {
-          return `set_id=${item.trim()}`
-        }, '').join('||')
-
-        item.min_sets = query(`data.sets.min_sets[*${matchSetQuery}]`, {
+      return _.map(input, (item) => {
+        console.log(item)
+        item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
           data: {
+            match: item,
             data
           }
         }).value
-      }
 
-      item.min_status = query('data.status.min_status[{match.min_status}]', {
-        data: {
-          match: item,
-          data
+        item.min_artist = query('data.artists.min_artists[{match.min_artist}]', {
+          data: {
+            match: item,
+            data
+          }
+        }).value
+
+        if (!_.isEmpty(item.min_sets)) {
+          let sets = item.min_sets.split(',')
+          let matchSetQuery = _.map(sets, (item) => {
+            return `set_id=${item.trim()}`
+          }, '').join('||')
+
+          item.min_sets = query(`data.sets.min_sets[*${matchSetQuery}]`, {
+            data: {
+              data
+            }
+          }).value
         }
-      }).value
 
-      return item;
+        item.min_status = query('data.status.min_status[{match.min_status}]', {
+          data: {
+            match: item,
+            data
+          }
+        }).value
+
+        return item;
+      })
     }
   }
   let queryString = `minis[*min_id=${search}||min_name~/${search}/i]:expand(?)`

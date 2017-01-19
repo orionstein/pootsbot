@@ -210,8 +210,8 @@ function joinMiniData(search) {
   console.log('searching')
   let helpers = {
     expand: (input) => {
-      return _.map(input, (item) => {
-        console.log(item)
+      return _.map(input, (origItem) => {
+        let item = Object.assign({}, origItem)
         item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
           data: {
             match: item,
@@ -226,6 +226,7 @@ function joinMiniData(search) {
           }
         }).value
 
+        console.log(item)
         if (!_.isEmpty(item.min_sets)) {
           let sets = item.min_sets.split(',')
           let matchSetQuery = _.map(sets, (item) => {

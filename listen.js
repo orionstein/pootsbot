@@ -82,7 +82,10 @@ function listen(bot, config, from, to, text, message) {
   //load and run each module in plugins, except for few
   
   _.forEach(modules, function(module) {
-    module(match, say)
+    if (module)
+    {
+      module(match, say)
+    }
   })
 
   store.runTempMatches(match, say)

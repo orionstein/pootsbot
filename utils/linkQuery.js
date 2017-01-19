@@ -57,6 +57,7 @@ function linkQuery(bot, config, command) {
   _.forEach(links, function(link) {
     calls.push(requestFunc(link))
   })
+  //TODO switch to bluebird
   async.parallel(calls, function(err, results) {
     _.noop()
   })

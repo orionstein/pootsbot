@@ -2,183 +2,334 @@ let request = require('request');
 let cheerio = require('cheerio');
 let _ = require('lodash');
 let async = require('async');
+let store = require('../utils/store');
+let miniatures = store.createNameSpace('miniatures');
+let query = require('json-query')
 
-let store = require('../utils/store')
+let cmds = "help|" +
+  "all|" +
+  "summary|sum|summery|info|information|" +
+  "sculptor|sculpt|sculpter|" +
+  "artist|" +
+  "status|stat|" +
+  "firstsold|sold|first|" +
+  "gameplay|game|" +
+  "notes|note|" +
+  "lore|" +
+  "art|artwork|concept|conceptart|" +
+  "pictures|pic|picture|" +
+  "buildguide|build|guide|" +
+  "sets|set";
+let alreadyPulledData = false;
+let data = {}
+// let dataMinis;
+// let dataArtists;
+// let dataSculptors;
+// let dataSets;
+// let dataStatus;
+let latestUpdateMinis;
+let latestUpdateSculptors;
+let latestUpdateSets;
+let latestUpdateStatus;
 
-let miniatures = store.createNameSpace('miniatures')
-
-module.exports = function(match, say) {
-  let defaultResponse = "lore";
-  let dataMinis;
-  let latestUpdatedMinis;
-
-  function pullDataMinis(cb) {
-    if (!dataMinis) {
-      request({
-        url: 'http://www.rubidiumhexafluorosilicate.com/kd/kingdomdeath.json',
-        json: true
-      }, function(error, res, body) {
-        if (!error) {
-          dataMinis = body;
-          latestUpdatedMinis = res.headers['last-modified'];
-          cb(body)
-        }
-      });
-    } else {
-      request({
-        url: 'http://www.rubidiumhexafluorosilicate.com/kd/kingdomdeath.json',
-        method: 'HEAD'
-      }, function(error, res) {
-        if (latestUpdatedMinis === res.headers['last-modified']) {
-          cb(dataMinis)
-        } else {
-          dataMinis = void 0;
-          pullDataMinis(cb)
-        }
-      });
-    }
-  }
-  
-  function showMiniInfo(srch, command) {
-    let search = "";
-    let stype = defaultResponse; // what type of data are we hunting for?
-    let parser = command.split(' ');
-    parser[2] = parser.slice(2).join(' ');
-    if (parser.length <= 1) {
-      // only gave command ... ignore this stuff. :P
-      say("Whachoo tryin' to say, Willis?");
-      return false;
-    }
-    if (parser.length == 2) {
-      // okay, we have command and search item (default subcommand) OR command and subcommand (no search item)
-      // assume first a search item
-      search = parser[1].toLowerCase();
-      // check to see if it's a subcommand, and if so, move it there, and then blank the search term
-      if (search.match("lore|sum|summery|summary|sculpt|sculpter|sculptor|artist|note|notes|art|artwork|pic|picture|pictures")) {
-        stype = search;
-        search = "";
+function pullDataMinis(cb) {
+  if (!data.minis) {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-minis.json',
+      json: true
+    }, function(error, res, body) {
+      if (!error) {
+        data.minis = body;
+        latestUpdateMinis = res.headers['last-modified'];
+        cb(body)
       }
-    } else {
-      // we got both command, subcommand and search item OR command and multiword search item (default subcommand)
-      // assume first subcommand/search
-      stype = parser[1].toLowerCase();
-      search = parser[2].toLowerCase();
-      // check to see if stype actually is a subcommand, else it must be multi-word search item \
-      if (!stype.match("lore|sum|summery|summary|sculpt|sculpter|sculptor|artist|note|notes|art|artwork|pic|picture|pictures")) {
-        search = stype + " " + search;
-        stype = defaultResponse;
-      }
-    }
-
-    let isnum = /^\d+$/.test(search);
-
-    pullDataMinis(function(body) {
-      let entry;
-      if (isnum) {
-        entry = _.find(body.miniatures, function(a) {
-          return ~~a.id === ~~search
-        })
+    });
+  } else {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-minis.json',
+      method: 'HEAD'
+    }, function(error, res) {
+      if (latestUpdateMinis === res.headers['last-modified']) {
+        cb(data.minis)
       } else {
-        entry = _.find(body.miniatures, function(a) {
-          return _.lowerCase(a.min_name) === _.lowerCase(search)
-        })
-      }
-      if (entry) {
-        switch (stype) {
-          case "sum":
-          case "summ":
-          case "summery":
-          case "summary":
-            say(entry.min_name + "\n  Summary:  " + entry.min_lore);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' lore ' + search)
-            })
-            break;
-          case "lore":
-            say(entry.min_name + "\n  Lore:  " + entry.min_lore);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' sculptor ' + search)
-            })
-            break;
-          case "sculpt":
-          case "sculpter":
-          case "sculptor":
-            say(entry.min_name + "\n  Sculptor:  " + entry.min_sculptor);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' artist ' + search)
-            })
-            break;
-          case "artist":
-            say(entry.min_name + "\n  Artist:  " + entry.min_artist);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' notes ' + search)
-            })
-            break;
-          case "note":
-          case "notes":
-            say(entry.min_name + "\n  Notes:  " + entry.min_notes);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' art ' + search)
-            })
-            break;
-          case "art":
-          case "artwork":
-            say(entry.min_name + "\n  Artwork:  " + entry.min_artwork);
-            miniatures.tempMatch('more', () => {
-              showMiniInfo(undefined, parser[0] + ' pic ' + search)
-            })
-            break;
-          case "pic":
-          case "picture":
-          case "pictures":
-            say(entry.min_name + "\n  Pictures:  " + entry.min_pictures);
-            break;
-          default:
-            say(entry.min_name + "\n  Yeah, it exists. What of it? :p");
-        }
-      } else {
-        if (isnum) {
-          say("There is no miniature with index #" + search + " was not found.");
-        } else {
-          say("The miniature '" + search + "' was not found.");
-        }
-
+        data.minis = void 0;
+        pullDataMinis(cb)
       }
     });
   }
-
-  match(['miniinfo', 'mini'], showMiniInfo)
-
-  function reduceMinis(entries) {
-    return _.reduce(entries, function(str, entry) {
-      if (entry.id === _.last(entries).id) {
-        return str + entry.id
-      } else {
-        return str + entry.id + ', '
-      }
-    // return (entry.id === _.last(entries).id) ? (str + entry.id) : (str + entry.id + ', ')
-    // bahaa i'm not that mean (but why not??? >>grins<<)
-    }, '')
-  }
-
-  match(['searchmini'], function(search) {
-    pullDataMinis(function(body) {
-      let entry;
-      entry = _.filter(body.miniatures, function(a) {
-        return _.includes(_.lowerCase(a.entry_content), _.lowerCase(search))
-      });
-
-      if (entry) {
-        if (_.size(entry) > 20) {
-          say("Matching Entries: " + reduceMinis(_.take(entry, 20)) + " and " + (_.size(entry) - 20) + " more...");
-        } else {
-          say("Matching Entries: " + reduceMinis(entry));
-        }
-      } else {
-        say("No Matching Entries for " + search);
-      }
-
-    });
-  })
-
 }
+function pullDataArtists(cb) {
+  if (!data.artists) {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_artist.json',
+      json: true
+    }, function(error, res, body) {
+      if (!error) {
+        data.artists = body;
+        latestUpdateArtists = res.headers['last-modified'];
+        cb(body)
+      }
+    });
+  } else {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_artist.json',
+      method: 'HEAD'
+    }, function(error, res) {
+      if (latestUpdateArtists === res.headers['last-modified']) {
+        cb(data.artists)
+      } else {
+        data.artists = void 0;
+        pullDataArtists(cb)
+      }
+    });
+  }
+}
+function pullDataSculptors(cb) {
+  if (!data.sculptors) {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_sculptor.json',
+      json: true
+    }, function(error, res, body) {
+      if (!error) {
+        data.sculptors = body;
+        latestUpdateSculptors = res.headers['last-modified'];
+        cb(body)
+      }
+    });
+  } else {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_sculptor.json',
+      method: 'HEAD'
+    }, function(error, res) {
+      if (latestUpdateSculptors === res.headers['last-modified']) {
+        cb(data.sculptors)
+      } else {
+        data.sculptors = void 0;
+        pullDataSculptors(cb)
+      }
+    });
+  }
+}
+function pullDataSets(cb) {
+  if (!data.sets) {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_sets.json',
+      json: true
+    }, function(error, res, body) {
+      if (!error) {
+        data.sets = body;
+        latestUpdateSets = res.headers['last-modified'];
+        cb(body)
+      }
+    });
+  } else {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_sets.json',
+      method: 'HEAD'
+    }, function(error, res) {
+      if (latestUpdateSets === res.headers['last-modified']) {
+        cb(data.sets)
+      } else {
+        data.sets = void 0;
+        pullDataSets(cb)
+      }
+    });
+  }
+}
+function pullDataStatus(cb) {
+  if (!data.status) {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_status.json',
+      json: true
+    }, function(error, res, body) {
+      if (!error) {
+        data.status = body;
+        latestUpdateStatus = res.headers['last-modified'];
+        cb(body)
+      }
+    });
+  } else {
+    request({
+      url: 'http://www.rubidiumhexafluorosilicate.com/kd/kd-min_status.json',
+      method: 'HEAD'
+    }, function(error, res) {
+      if (latestUpdateStatus === res.headers['last-modified']) {
+        cb(data.status)
+      } else {
+        data.status = void 0;
+        pullDataStatus(cb)
+      }
+    });
+  }
+}
+
+function loadData() {
+  let snork;
+  pullDataStatus(function(snork) {});
+  pullDataArtists(function(snork) {});
+  pullDataSculptors(function(snork) {});
+  pullDataMinis(function(snork) {});
+  pullDataSets(function(snork) {});
+}
+
+const init = (bot) => {
+  loadData();
+};
+
+//match(['miniinfo', 'mini', 'min'], showMiniInfo);
+
+
+
+let defaultResponse = "summary";
+
+function parseCommand(fullcmd) {
+  let parsed = {
+    cmd: '',
+    scmd: defaultResponse,
+    srch: '',
+    isId: false
+  };
+  if (!fullcmd) {
+    parsed.scmd = 'help';
+    return parsed;
+  }
+  fullcmd = (fullcmd.replace(/[\s\n\r]+/g, ' ')).trim();
+  let parser = fullcmd.split(' ');
+  parsed.cmd = parser[0];
+  if (_.includes(cmds, parsed.cmd)) {
+    parsed.scmd = parsed.cmd
+    parsed.srch = parser.slice(1).join(' ');
+  } else {
+    parsed.srch = parser.join(' ');
+  }
+  parsed.isId = /^\d+$/.test(parsed.srch);
+  return parsed
+}
+
+function joinMiniData(search) {
+  console.log('searching')
+  let helpers = {
+    expand: (input) => {
+      let item = input
+
+      item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
+        data: {
+          match: item,
+          data
+        }
+      }).value
+
+      item.min_artist = query('data.artists.min_artists[{match.min_artist}]', {
+        data: {
+          match: item,
+          data
+        }
+      }).value
+
+      let sets = item.min_sets.split(',')
+      let matchSetQuery = _.map(sets, (item) => {
+        return `set_id=${item.trim()}`
+      }, '').join('||')
+
+      item.min_sets = query(`data.sets.min_sets[*${matchSetQuery}]`, {
+        data: {
+          data
+        }
+      }).value
+
+      item.min_status = query('data.status.min_status[{match.min_status}]', {
+        data: {
+          match: item,
+          data
+        }
+      }).value
+
+      return item;
+    }
+  }
+  let queryString = `minis[min_id=${search}||min_name~/${search}/i]:expand(?)`
+  let match = query(queryString, {
+    data: data.minis,
+    locals: helpers,
+    allowRegexp: true
+  })
+  return match.value
+}
+
+//let say = new Say(bot, config, from, to)
+function showMiniInfo(say, fullcmd) {
+  parsed = parseCommand(fullcmd);
+  let entry;
+
+  entry = joinMiniData(parsed.srch)
+
+  if (entry) {
+    switch (parsed.scmd) {
+      case "sum":
+      case "summ":
+      case "summery":
+      case "summary":
+        say(entry.min_name + "\n  Summary:  " + entry.min_summary);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(say, 'lore ' + parsed.srch)
+        });
+        break;
+      case "lore":
+        say(entry.min_name + "\n  Lore:  " + entry.min_lore);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(undefined, 'sculptor ' + parsed.srch)
+        });
+        break;
+      case "sculpt":
+      case "sculpter":
+      case "sculptor":
+        say(entry.min_name + "\n  Sculptor:  " + entry.min_sculptor.sculptor_name);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(undefined, 'artist ' + parsed.srch)
+        });
+        break;
+      case "artist":
+        say(entry.min_name + "\n  Artist:  " + entry.min_artist.artist_name);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(undefined, 'notes ' + parsed.srch)
+        });
+        break;
+      case "note":
+      case "notes":
+        say(entry.min_name + "\n  Notes:  " + entry.min_notes);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(undefined, 'art ' + parsed.srch)
+        });
+        break;
+      case "art":
+      case "artwork":
+        say(entry.min_name + "\n  Artwork:  " + entry.min_artwork);
+        miniatures.tempMatch('more', () => {
+          showMiniInfo(undefined, 'pic ' + parsed.srch)
+        });
+        break;
+      case "pic":
+      case "picture":
+      case "pictures":
+        say(entry.min_name + "\n  Pictures:  " + entry.min_pictures);
+        break;
+      default:
+        say(entry.min_name + "\n  Yeah, it exists. What of it? :p");
+    }
+  // list search, etc.
+  } else {
+    if (parsed.isId) {
+      say("There is no miniature with index #" + parsed.srch + " was not found.");
+    } else {
+      say("The miniature '" + parsed.srch + "' was not found.");
+    }
+  }
+}
+
+function minis(match, say) {
+  match(['miniinfo', 'mini', 'min'], _.curry(showMiniInfo)(say));
+  match(['minirefresh'], init);
+}
+
+minis.prototype.init = init;
+module.exports = minis;

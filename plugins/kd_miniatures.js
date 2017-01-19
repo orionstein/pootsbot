@@ -211,7 +211,7 @@ function joinMiniData(search) {
   let helpers = {
     expand: (input) => {
       return _.map(input, (item) => {
-
+        console.log(item)
         item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
           data: {
             match: item,

@@ -210,6 +210,7 @@ function joinMiniData(search) {
   console.log('searching')
   let helpers = {
     expand: (input) => {
+      console.log(input)
       let item = input
 
       item.min_sculptor = query('data.sculptors.min_sculptors[{match.min_sculptor}]', {
@@ -226,16 +227,18 @@ function joinMiniData(search) {
         }
       }).value
 
-      let sets = item.min_sets.split(',')
-      let matchSetQuery = _.map(sets, (item) => {
-        return `set_id=${item.trim()}`
-      }, '').join('||')
+      if (!_.isEmpty(item.min_sets)) {
+        let sets = item.min_sets.split(',')
+        let matchSetQuery = _.map(sets, (item) => {
+          return `set_id=${item.trim()}`
+        }, '').join('||')
 
-      item.min_sets = query(`data.sets.min_sets[*${matchSetQuery}]`, {
-        data: {
-          data
-        }
-      }).value
+        item.min_sets = query(`data.sets.min_sets[*${matchSetQuery}]`, {
+          data: {
+            data
+          }
+        }).value
+      }
 
       item.min_status = query('data.status.min_status[{match.min_status}]', {
         data: {
@@ -247,7 +250,7 @@ function joinMiniData(search) {
       return item;
     }
   }
-  let queryString = `minis[min_id=${search}||min_name~/${search}/i]:expand(?)`
+  let queryString = `minis[*min_id=${search}||min_name~/${search}/i]:expand(?)`
   let match = query(queryString, {
     data: data.minis,
     locals: helpers,
@@ -261,69 +264,71 @@ function showMiniInfo(say, fullcmd) {
   parsed = parseCommand(fullcmd);
   let entry;
 
-  entry = joinMiniData(parsed.srch)
+  entries = joinMiniData(parsed.srch)
 
-  if (entry) {
-    switch (parsed.scmd) {
-      case "sum":
-      case "summ":
-      case "summery":
-      case "summary":
-        say(entry.min_name + "\n  Summary:  " + entry.min_summary);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(say, 'lore ' + parsed.srch)
-        });
-        break;
-      case "lore":
-        say(entry.min_name + "\n  Lore:  " + entry.min_lore);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(undefined, 'sculptor ' + parsed.srch)
-        });
-        break;
-      case "sculpt":
-      case "sculpter":
-      case "sculptor":
-        say(entry.min_name + "\n  Sculptor:  " + entry.min_sculptor.sculptor_name);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(undefined, 'artist ' + parsed.srch)
-        });
-        break;
-      case "artist":
-        say(entry.min_name + "\n  Artist:  " + entry.min_artist.artist_name);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(undefined, 'notes ' + parsed.srch)
-        });
-        break;
-      case "note":
-      case "notes":
-        say(entry.min_name + "\n  Notes:  " + entry.min_notes);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(undefined, 'art ' + parsed.srch)
-        });
-        break;
-      case "art":
-      case "artwork":
-        say(entry.min_name + "\n  Artwork:  " + entry.min_artwork);
-        miniatures.tempMatch('more', () => {
-          showMiniInfo(undefined, 'pic ' + parsed.srch)
-        });
-        break;
-      case "pic":
-      case "picture":
-      case "pictures":
-        say(entry.min_name + "\n  Pictures:  " + entry.min_pictures);
-        break;
-      default:
-        say(entry.min_name + "\n  Yeah, it exists. What of it? :p");
-    }
-  // list search, etc.
-  } else {
-    if (parsed.isId) {
-      say("There is no miniature with index #" + parsed.srch + " was not found.");
+  _.forEach(entries, (entry) => {
+    if (entry) {
+      switch (parsed.scmd) {
+        case "sum":
+        case "summ":
+        case "summery":
+        case "summary":
+          say(entry.min_name + "\n  Summary:  " + entry.min_summary);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(say, 'lore ' + parsed.srch)
+          });
+          break;
+        case "lore":
+          say(entry.min_name + "\n  Lore:  " + entry.min_lore);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(undefined, 'sculptor ' + parsed.srch)
+          });
+          break;
+        case "sculpt":
+        case "sculpter":
+        case "sculptor":
+          say(entry.min_name + "\n  Sculptor:  " + entry.min_sculptor.sculptor_name);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(undefined, 'artist ' + parsed.srch)
+          });
+          break;
+        case "artist":
+          say(entry.min_name + "\n  Artist:  " + entry.min_artist.artist_name);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(undefined, 'notes ' + parsed.srch)
+          });
+          break;
+        case "note":
+        case "notes":
+          say(entry.min_name + "\n  Notes:  " + entry.min_notes);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(undefined, 'art ' + parsed.srch)
+          });
+          break;
+        case "art":
+        case "artwork":
+          say(entry.min_name + "\n  Artwork:  " + entry.min_artwork);
+          miniatures.tempMatch('more', () => {
+            showMiniInfo(undefined, 'pic ' + parsed.srch)
+          });
+          break;
+        case "pic":
+        case "picture":
+        case "pictures":
+          say(entry.min_name + "\n  Pictures:  " + entry.min_pictures);
+          break;
+        default:
+          say(entry.min_name + "\n  Yeah, it exists. What of it? :p");
+      }
+    // list search, etc.
     } else {
-      say("The miniature '" + parsed.srch + "' was not found.");
+      if (parsed.isId) {
+        say("There is no miniature with index #" + parsed.srch + " was not found.");
+      } else {
+        say("The miniature '" + parsed.srch + "' was not found.");
+      }
     }
-  }
+  })
 }
 
 function minis(match, say) {

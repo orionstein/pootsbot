@@ -174,9 +174,13 @@ function isDataLoaded() {
   }
 }
 
-//isDataLoaded();
+const init = (bot) => {
+  isDataLoaded();
+};
 
-module.exports = function(match, say) {
+//match(['miniinfo', 'mini', 'min'], showMiniInfo);
+
+
 
   let defaultResponse = "summary";
   isDataLoaded();
@@ -213,7 +217,7 @@ module.exports = function(match, say) {
 
 
   //let say = new Say(bot, config, from, to)
-  function showMiniInfo(subcmd, fullcmd) {
+  function showMiniInfo(subcmd, fullcmd, say) {
     isDataLoaded();
     parsed = parseCommand(fullcmd);
 
@@ -296,7 +300,8 @@ module.exports = function(match, say) {
 
 
 
-  match(['miniinfo', 'mini', 'min'], showMiniInfo);
+
+
 
   /*
   function reduceMinis(entries) {
@@ -331,4 +336,11 @@ module.exports = function(match, say) {
     });
   })
   */
-};
+
+
+function minis(match, say) {
+  match(['miniinfo', 'mini', 'min'], showMiniInfo(say));
+}
+
+minis.prototype.init = init;
+module.exports = minis;

@@ -282,6 +282,7 @@ module.exports = function(match, say) {
           default:
             say(entry.min_name + "\n  Yeah, it exists. What of it? :p");
         }
+        // list search, etc.
       } else {
         if (parsed.isId) {
           say("There is no miniature with index #" + parsed.srch + " was not found.");
@@ -291,8 +292,6 @@ module.exports = function(match, say) {
       }
     })
   }
-
-      //}
 
 
 

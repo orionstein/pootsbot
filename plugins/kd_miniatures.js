@@ -40,8 +40,7 @@ function pullDataMinis(cb) {
       json: true
     }, function(error, res, body) {
       if (!error) {
-        //dataMinis = body;
-        data.minis = body; //new
+        data.minis = body;
         latestUpdateMinis = res.headers['last-modified'];
         cb(body)
       }
@@ -52,11 +51,9 @@ function pullDataMinis(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdateMinis === res.headers['last-modified']) {
-        //cb(dataMinis)
-        cb(data.minis); //new
+        cb(data.minis);
       } else {
-        //dataMinis = void 0;
-        data.minis = void 0; //new
+        data.minis = void 0;
         pullDataMinis(cb)
       }
     });
@@ -69,8 +66,7 @@ function pullDataArtists(cb) {
       json: true
     }, function(error, res, body) {
       if (!error) {
-        //dataArtists = body;
-        data.artists = body; //new
+        data.artists = body;
         latestUpdateArtists = res.headers['last-modified'];
         cb(body)
       }
@@ -81,11 +77,9 @@ function pullDataArtists(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdateArtists === res.headers['last-modified']) {
-        //cb(dataArtists)
-        cb(data.artists); //new
+        cb(data.artists);
       } else {
-        //dataArtists = void 0;
-        data.artists = void 0; //new
+        data.artists = void 0;
         pullDataArtists(cb)
       }
     });
@@ -98,8 +92,7 @@ function pullDataSculptors(cb) {
       json: true
     }, function(error, res, body) {
       if (!error) {
-        //dataSculptors = body;
-        data.sculptors = body; //new
+        data.sculptors = body;
         latestUpdateSculptors = res.headers['last-modified'];
         cb(body)
       }
@@ -110,11 +103,9 @@ function pullDataSculptors(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdateSculptors === res.headers['last-modified']) {
-        //cb(dataSculptors)
-        cb(data.sculptors); //new
+        cb(data.sculptors);
       } else {
-        //dataSculptors = void 0;
-        data.sculptors = void 0; //new
+        data.sculptors = void 0;
         pullDataSculptors(cb)
       }
     });
@@ -127,8 +118,7 @@ function pullDataSets(cb) {
       json: true
     }, function(error, res, body) {
       if (!error) {
-        //dataSets = body;
-        data.sets = body; //new
+        data.sets = body;
         latestUpdateSets = res.headers['last-modified'];
         cb(body)
       }
@@ -139,11 +129,9 @@ function pullDataSets(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdateSets === res.headers['last-modified']) {
-        //cb(dataSets)
-        cb(data.sets); //new
+        cb(data.sets);
       } else {
-        //dataSets = void 0;
-        data.sets = void 0; //new
+        data.sets = void 0;
         pullDataSets(cb)
       }
     });
@@ -156,8 +144,7 @@ function pullDataStatus(cb) {
       json: true
     }, function(error, res, body) {
       if (!error) {
-        //dataStatus = body;
-        data.status = body; //new
+        data.status = body;
         latestUpdateStatus = res.headers['last-modified'];
         cb(body)
       }
@@ -168,17 +155,15 @@ function pullDataStatus(cb) {
       method: 'HEAD'
     }, function(error, res) {
       if (latestUpdateStatus === res.headers['last-modified']) {
-        //cb(dataStatus)
-        cb(data.status); //new
+        cb(data.status);
       } else {
-        //dataStatus = void 0;
-        data.status = void 0; //new
+        data.status = void 0;
         pullDataStatus(cb)
       }
     });
   }
 }
-function isDataLoaded() { //new he changed name of this to loadData
+function isDataLoaded() {
   if (!alreadyPulledData) {
     let snork;
     pullDataStatus(function(snork){});
@@ -186,7 +171,7 @@ function isDataLoaded() { //new he changed name of this to loadData
     pullDataSculptors(function(snork){});
     pullDataMinis(function(snork){});
     pullDataSets(function(snork){});
-    alreadyPulledData = true; //new he did pull all the alreadypulledata bit out of this one
+    alreadyPulledData = true;
   }
 }
 
@@ -195,7 +180,7 @@ The initializer... currently just checks and grabs json data if needed.
  */
 const init = (bot) => {
   alreadyPulledData = false;
-  isDataLoaded(); //new he changed name of this to loadData
+  isDataLoaded();
 };
 
 /*
@@ -205,9 +190,7 @@ The return object includes the three parts of the full command (the command, sub
 if the search item is a number (and thus used for index # lookups), and if it is a literal search (meaning match exactly, since
 the search term was enclosed in either single- or double-quotes)
  */
-function parseCommand(fullcmd) {
-  // he had switched this to just part command coming in, leaving as was for now
-  //todo: check for scmd missing needed search data: ex: !min status
+function parseCommand(subcmd) {
   let parsed = {
     cmd: '',
     scmd: defaultResponse,
@@ -215,27 +198,30 @@ function parseCommand(fullcmd) {
     isId: false,
     isLit: false
   };
-  fullcmd = (fullcmd.replace( /[\s\n\r]+/g, ' ' )).trim();
-  let parser = fullcmd.split(' ');
-  parsed.cmd = parser[0];
-  if (parser.length <= 1) {
+  if (!subcmd) {
+    parsed.scmd = "help";
+    return parsed;
+  }
+  subcmd = (subcmd.replace( /[\s\n\r]+/g, ' ' )).trim();
+  let parser = subcmd.split(' ');
+  if (parser.length == 0) {
     parsed.scmd = 'help';
     return parsed;
   }
-  if (parser[1].match(cmds)) {
-    if (parser.length >= 3) {
-      parser[2] = parser.slice(2).join(' ');
+  if (parser[0].match(cmds)) {
+    if (parser.length >= 2) {
+      parser[1] = parser.slice(1).join(' ');
     } else {
-      parser[2] = "";
+      parser[1] = "";
     }
   } else {
-    if (parser.length >=2) {
-      parser[2] = parser.slice(1).join(' ');
-      parser[1] = defaultResponse;
+    if (parser.length >=1) {
+      parser[1] = parser.slice(0).join(' ');
+      parser[0] = defaultResponse;
     }
   }
-  parsed.scmd = parser[1].toLowerCase();
-  parsed.srch = parser[2].toLowerCase();
+  parsed.scmd = parser[0].toLowerCase();
+  parsed.srch = parser[1].toLowerCase();
   if((parsed.srch[0] == "'" && parsed.srch[parsed.srch.length - 1] == "'") || (parsed.srch[0] == '"' && parsed.srch[parsed.srch.length - 1] == '"') ){
     parsed.isLit = true;
     parsed.srch = parsed.srch.substr(1,parsed.srch.length - 2);
@@ -342,7 +328,6 @@ function joinMiniData(search, isLit, isId) {
     })
     ret = tmp;
   }
-
   return ret;
 }
 
@@ -500,8 +485,8 @@ function handleHelp(item) {
 /*
 This is the meat of the program, and handles responding to the questioner with an appropriate answer.
  */
-function showMiniInfo(say, subcmd, fullcmd) {
-  let parsed = parseCommand(fullcmd);
+function showMiniInfo(say, subcmd) {
+  let parsed = parseCommand(subcmd);
   let tmp = '';
   let tmp2;
   if (parsed.scmd == "help") {
@@ -523,6 +508,14 @@ function showMiniInfo(say, subcmd, fullcmd) {
       entries.map(function(entry) {
         say(`Id ${entry.min_id} - ${entry.min_name}`)
       })
+      /*
+       function paging(start=0, numItems=10, search){
+       let miniInfo = joinMiniData(search);
+        let slice = miniInfo.slice(start, start+numItems);
+         _.foreach(slice, (item) => {
+         say('item blah') };
+          return tempMatch('more', _.curry(paging(start+10, numItems)) } paging(0, 15, search)
+       */
     } else {
       say(`There are ${entries.length} miniatures that match that search.  That is too many for me to list, please revise your search.`);
     }
@@ -541,7 +534,7 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' lore ' + parsed.srch)
+            showMiniInfo(say, 'lore ' + parsed.srch)
           });
           break;
         case "lore":
@@ -555,10 +548,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
             say(tmp, 'user')
           }
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' info ' + parsed.srch)
+            showMiniInfo(say, 'info ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' sculptor ' + parsed.srch)
+            showMiniInfo(say, 'sculptor ' + parsed.srch)
           });
           break;
         case "sculpt":
@@ -573,10 +566,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
             tmp = entry.min_name + tmp2.strng;
           }
           say(tmp);miniatures.tempMatch('prev', () => {
-          showMiniInfo(say, undefined, parsed.cmd + ' lore ' + parsed.srch)
+          showMiniInfo(say, 'lore ' + parsed.srch)
         });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' artist ' + parsed.srch)
+            showMiniInfo(say, 'artist ' + parsed.srch)
           });
           break;
         case "artist":
@@ -590,10 +583,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' sculptor ' + parsed.srch)
+            showMiniInfo(say, 'sculptor ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' notes ' + parsed.srch)
+            showMiniInfo(say, 'notes ' + parsed.srch)
           });
           break;
         case "note":
@@ -605,10 +598,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' artist ' + parsed.srch)
+            showMiniInfo(say, 'artist ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' art ' + parsed.srch)
+            showMiniInfo(say, 'art ' + parsed.srch)
           });
           break;
         case "art":
@@ -622,10 +615,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' notes ' + parsed.srch)
+            showMiniInfo(say, 'notes ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' pic ' + parsed.srch)
+            showMiniInfo(say, 'pic ' + parsed.srch)
           });
           break;
         case "pic":
@@ -638,10 +631,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' art ' + parsed.srch)
+            showMiniInfo(say, 'art ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' buildguide ' + parsed.srch)
+            showMiniInfo(say, 'buildguide ' + parsed.srch)
           });
           break;
         case "guide":
@@ -654,10 +647,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' pic ' + parsed.srch)
+            showMiniInfo(say, 'pic ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' gameplay ' + parsed.srch)
+            showMiniInfo(say, 'gameplay ' + parsed.srch)
           });
           break;
         case "game":
@@ -669,10 +662,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' buildguide ' + parsed.srch)
+            showMiniInfo(say, 'buildguide ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' status ' + parsed.srch)
+            showMiniInfo(say, 'status ' + parsed.srch)
           });
           break;
         case "stat":
@@ -684,10 +677,10 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' gameplay ' + parsed.srch)
+            showMiniInfo(say, 'gameplay ' + parsed.srch)
           });
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' firstsold ' + parsed.srch)
+            showMiniInfo(say, 'firstsold ' + parsed.srch)
           });
           break;
         case "sold":
@@ -705,7 +698,7 @@ function showMiniInfo(say, subcmd, fullcmd) {
           }
           say(tmp);
           miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, parsed.cmd + ' status ' + parsed.srch)
+            showMiniInfo(say, undefined, 'status ' + parsed.srch)
           });
           break;
         default:
@@ -717,7 +710,6 @@ function showMiniInfo(say, subcmd, fullcmd) {
 }
 
 function minis(match, say) {
-  //match(['miniinfo', 'mininfo', 'mini', 'min'], showMiniInfo);
   match(['miniinfo', 'mininfo', 'mini', 'min'], _.curry(showMiniInfo)(say));
   match(['minirefresh', 'minrefresh'], init);
 }

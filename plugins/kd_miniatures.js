@@ -518,8 +518,32 @@ function showMiniInfo(say, subcmd) {
           return tempMatch('more', _.curry(paging(start+10, numItems)) } paging(0, 15, search)
        */
     } else {
-      say(`There are ${entries.length} miniatures that match that search.  That is too many for me to list, please revise your search.`);
+      say(`There are ${entries.length} miniatures that match that search.  I will list them in groups:`);
+      function paging(start=0, numItems=10, search) {
+        let miniInfo = joinMiniData(search, false, false);
+        let slice = miniInfo.slice(start, start+numItems);
+        _.forEach(slice, (item) => {
+          say(`Id ${item.min_id} - ${item.min_name}`);
+        });
+        let tmp = (miniInfo.length - (start+10)) - numItems;
+        if (tmp < (numItems * -1)) { return; }
+        if (tmp < 0) {
+          let temp = numItems + tmp;
+          say('Enter !more for the next group of ' + temp.toString() + '.');
+        } else {
+          say('Enter !more for the next group of ' + numItems.toString() + '.');
+        }
+        miniatures.tempMatch('more', () => {
+          paging(start+10,numItems,search)
+        });
+      }
+      paging (0, 10, parsed.srch);
     }
+    /*
+     miniatures.tempMatch('more', () => {
+     showMiniInfo(say, 'pic ' + parsed.lsrch)
+     });
+     */
   } else {
     _.forEach(entries, (entry) => {
       switch (parsed.scmd) {

@@ -192,9 +192,9 @@ the search term was enclosed in either single- or double-quotes)
  */
 function parseCommand(subcmd) {
   let parsed = {
-    cmd: '',
     scmd: defaultResponse,
     srch: '',
+    lsrch: '',
     isId: false,
     isLit: false
   };
@@ -222,6 +222,7 @@ function parseCommand(subcmd) {
   }
   parsed.scmd = parser[0].toLowerCase();
   parsed.srch = parser[1].toLowerCase();
+  parsed.lsrch = parsed.srch;
   if((parsed.srch[0] == "'" && parsed.srch[parsed.srch.length - 1] == "'") || (parsed.srch[0] == '"' && parsed.srch[parsed.srch.length - 1] == '"') ){
     parsed.isLit = true;
     parsed.srch = parsed.srch.substr(1,parsed.srch.length - 2);
@@ -534,7 +535,7 @@ function showMiniInfo(say, subcmd) {
           }
           say(tmp);
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'lore ' + parsed.srch)
+            showMiniInfo(say, 'lore ' + parsed.lsrch)
           });
           break;
         case "lore":
@@ -547,11 +548,11 @@ function showMiniInfo(say, subcmd) {
             say("Lore for " + entry.min_name + " whispered due to potential spoilers.");
             say(tmp, 'user')
           }
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'info ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'info ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'sculptor ' + parsed.srch)
+            showMiniInfo(say, 'sculptor ' + parsed.lsrch)
           });
           break;
         case "sculpt":
@@ -565,11 +566,12 @@ function showMiniInfo(say, subcmd) {
           } else {
             tmp = entry.min_name + tmp2.strng;
           }
-          say(tmp);miniatures.tempMatch('prev', () => {
-          showMiniInfo(say, 'lore ' + parsed.srch)
-        });
+          say(tmp);
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'lore ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'artist ' + parsed.srch)
+            showMiniInfo(say, 'artist ' + parsed.lsrch)
           });
           break;
         case "artist":
@@ -582,11 +584,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + tmp2.strng;
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'sculptor ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'sculptor ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'notes ' + parsed.srch)
+            showMiniInfo(say, 'notes ' + parsed.lsrch)
           });
           break;
         case "note":
@@ -597,11 +599,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  There are no notes for this miniature.";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'artist ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'artist ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'art ' + parsed.srch)
+            showMiniInfo(say, 'art ' + parsed.lsrch)
           });
           break;
         case "art":
@@ -614,11 +616,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  There is no artwork for this miniature available.";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'notes ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'notes ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'pic ' + parsed.srch)
+            showMiniInfo(say, 'pic ' + parsed.lsrch)
           });
           break;
         case "pic":
@@ -630,11 +632,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  There are no pictures of this miniature available.";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'art ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'art ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'buildguide ' + parsed.srch)
+            showMiniInfo(say, 'buildguide ' + parsed.lsrch)
           });
           break;
         case "guide":
@@ -646,11 +648,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  There is no build guide for this miniature available.";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'pic ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'pic ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'gameplay ' + parsed.srch)
+            showMiniInfo(say, 'gameplay ' + parsed.lsrch)
           });
           break;
         case "game":
@@ -661,11 +663,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  There is no gameplay associated with this miniature at this time.";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'buildguide ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'buildguide ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'status ' + parsed.srch)
+            showMiniInfo(say, 'status ' + parsed.lsrch)
           });
           break;
         case "stat":
@@ -676,11 +678,11 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  This miniature has been " + entry.min_status.status + ".";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, 'gameplay ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, 'gameplay ' + parsed.lsrch)
+          //});
           miniatures.tempMatch('more', () => {
-            showMiniInfo(say, 'firstsold ' + parsed.srch)
+            showMiniInfo(say, 'firstsold ' + parsed.lsrch)
           });
           break;
         case "sold":
@@ -697,9 +699,9 @@ function showMiniInfo(say, subcmd) {
             tmp = entry.min_name + "\n  This miniature was first sold on " + entry.min_firstsold + ".";
           }
           say(tmp);
-          miniatures.tempMatch('prev', () => {
-            showMiniInfo(say, undefined, 'status ' + parsed.srch)
-          });
+          //miniatures.tempMatch('prev', () => {
+          //  showMiniInfo(say, undefined, 'status ' + parsed.lsrch)
+          //});
           break;
         default:
           say(entry.min_name + "\n  Yeah, it exists. What of it? :p");

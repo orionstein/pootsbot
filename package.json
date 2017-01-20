@@ -4,8 +4,10 @@
   },
   "dependencies": {
     "async": "^2.1.4",
+    "bluebird": "^3.4.7",
     "cheerio": "^0.22.0",
     "irc": "^0.5.2",
+    "json-query": "^2.2.0",
     "lodash": "^4.17.4",
     "moment": "^2.17.1",
     "node-wolfram": "^0.0.1",

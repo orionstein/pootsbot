@@ -49,8 +49,8 @@ const Store = function() {
     _this.timestamp = Date.now()
     // tempMatches.push(_this)
     const matchFunc = (match, say) => {
-      match(_this.toMatch, () => {
-        cb()
+      match(_this.toMatch, (search) => {
+        cb(search)
         matchFunc.prototype.done = true
       })
     }

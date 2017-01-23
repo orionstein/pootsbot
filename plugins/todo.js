@@ -1,34 +1,72 @@
-let _ = require('lodash')
+const _ = require('lodash')
+const store = require('../utils/store')
+const uuid = require('node-uuid')
 
-const hitLocationDie = ['body', 'body', 'waist', 'hands', 'legs', 'head']
+let todos = store.createNameSpace('todos')
 
-module.exports = function(match, say) {
+class ToDo {
+  constructor(entry){
+    this.entry = entry
+    this.id = uuid.v1()
+    this.completed = false
+  }
+  complete(){
+    this.completed = true
+  }
+  remove(){
+  }
+}
+
+const init = (bot) => {
+  bot.addListener("nick", function(oldNick, newNick) {
+    if (todos.has(oldNick)) {
+      todos.move(oldNick, newNick)
+    }
+  });
+}
+
+function matchTodo(match, say) {
   match(['todo'], function(search) {
-    console.log(search)
-    if (!search) {
-    } else if (_.startsWith(search.trim(), 'help')) {
-    } else if (_.startsWith(search.trim(), 'hunt')) {
-    } else {
-      let num = search.split('d')[0]
-      let type = search.split('d')[1]
-      let results = []
-      if (type === 'hl') {
-        for (i = 0; i < num; i++) {
-          results.push(_.sample(hitLocationDie))
-        }
-      } else {
-        for (i = 0; i < num; i++) {
-          results.push(Math.floor(Math.random() * type) + 1)
-        }
-      }
-      if (type !== 'hl') {
-        say('Total: ' + _.sum(results))
-      }
-      console.log(results)
-      let resultString = _.join(results, ', ')
-      console.log(resultString)
-      say(resultString)
+    let {data} = todos.get(say.prototype.from)
+    if (!data)
+      data = []
+    if (!search)
+    {
+      _.map(_.remove(data, {completed: true}), (todo, index) => {
+        console.log(todo)
+        say(`${index} - ${todo.entry}`)
+      })
+    }
+    else if (search.startsWith('completed'))
+    {
+      _.map(_.remove(data, {completed: false}), (todo, index) => {
+        say(`${index} - ${todo.entry}`)
+      })
+    }
+    else if (search.startsWith('all'))
+    {
+      _.map(data, (todo, index) => {
+        say(`${index} - ${todo.entry}`)
+      })
+    }
+    else if (search.startsWith('complete'))
+    {
+    }
+    else if (search.startsWith('clearCompleted'))
+    {
+    }
+    else if (search.startsWith('clearCompleted'))
+    {
+    }
+    else
+    {
+      data.push(new ToDo(search))
+      todos.set(say.prototype.from, data)
+      say('Todo Added!')
     }
   })
 }
 
+matchTodo.prototype.init = init
+
+module.exports = matchTodo
